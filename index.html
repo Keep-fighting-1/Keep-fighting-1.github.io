@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>零荒汇一基于多源数据整合的农村零星荒地智能匹配平台</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            color: #333;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        a {
+            text-decoration: none;
+            color: #28a745;
+        }
+        a:hover {
+            color: #1e7e34;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1e7e34;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo h1 {
+            font-size: 20px;
+            color: #28a745;
+        }
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 24px;
+        }
+        nav a {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .login-btn {
+            background-color: transparent;
+            color: #28a745;
+            border: 1px solid #28a745;
+            margin-right: 8px;
+        }
+        .header-btns button:first-child:hover {
+            background-color: #e6f3e6;
+            color: #1e7e34;
+        }
+
+        /* 横幅样式 */
+        .banner {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/6d4a732f37b548b391004d65f43c1592.jpg~tplv-a9rns2rl98-image.png?rcl=202512121433030135E10A52379A983F12&rk3s=8e244e95&rrcfp=dafada99&x-expires=2081745183&x-signature=LJGt%2Fekv3QGSRX%2BJV0mwFTvbSZw%3D");
+            background-size: cover;
+            background-position: center top; 
+            background-repeat: no-repeat;
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            min-height: 500px;
+        }
+        .banner h2 {
+            font-size: 36px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .banner p {
+            font-size: 18px;
+            margin-bottom: 24px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .banner-btns {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 核心价值模块 */
+        .values {
+            padding: 60px 0;
+            background-color: white;
+        }
+        .values h3 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        .value-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 24px;
+        }
+        .value-card {
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            background: #fff;
+            transition: transform 0.3s;
+        }
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+        .value-card img {
+            width: 50px; 
+            height: 50px;
+            margin-bottom: 16px;
+        }
+        .value-card h4 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #28a745;
+        }
+
+        /* 供需对接模块 */
+        .match {
+            padding: 60px 0;
+            background-color: #f8f9fa;
+        }
+        .match h3 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        .match-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .match-tab {
+            padding: 12px 24px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .match-tab.active {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);
+        }
+        .match-content {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* 荒地供需表单布局：两行三列 */
+        .match-form {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 8px;
+        }
+        .match-result {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+        .land-item {
+            padding: 16px;
+            border: 1px solid #eee;
+            border-left: 5px solid #28a745; 
+            border-radius: 4px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9fff9;
+        }
+        .land-info h4 {
+            margin-bottom: 4px;
+            color: #28a745;
+        }
+        .land-info p {
+            color: #666;
+            font-size: 14px;
+        }
+        .land-action {
+            white-space: nowrap;
+        }
+
+        /* 政策解读模块 */
+        .policy {
+            padding: 60px 0;
+            background-color: white;
+        }
+        .policy h3 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 40px;
+            color: #333;
+        }
+        .policy-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .policy-item {
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-top: 4px solid #f0ad4e; 
+        }
+        .policy-item h4 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .policy-item p {
+            color: #666;
+            margin-bottom: 16px;
+        }
+        
+        /* 弹窗样式 (通用) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-content h4 {
+            font-size: 24px;
+            color: #28a745;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-content p {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 15px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        /* 登录/注册弹窗特有样式 */
+        .login-modal-content {
+            max-width: 380px;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .login-modal-content h4 {
+            color: #28a745;
+            font-size: 26px;
+            border-bottom: none;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        /* 验证码输入组的样式 */
+        .code-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .code-input-group input {
+            flex-grow: 1;
+            margin: 0; 
+        }
+        .code-input-group .send-code {
+            flex-shrink: 0;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            line-height: 1.5; 
+            height: 38px; 
+        }
+        .code-input-group .send-code:hover {
+            background: #1e7e34;
+        }
+
+        .login-modal-content button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .modal-switch {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        /* 团队介绍弹窗样式 */
+        .team-modal-content {
+            max-width: 600px;
+        }
+        .team-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .team-list li {
+            padding: 8px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .join-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto 0;
+            text-align: center;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .join-btn:hover {
+            background-color: #1e7e34;
+            color: white;
+        }
+
+        /* 底部样式 */
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 40px 0 20px;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .footer-col h4 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #28a745;
+        }
+        .footer-col ul {
+            list-style: none;
+        }
+        .footer-col li {
+            margin-bottom: 8px;
+        }
+        .footer-col a {
+            color: #ccc;
+        }
+        .footer-col a:hover {
+            color: #28a745;
+        }
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+            nav ul {
+                gap: 16px;
+            }
+            .banner {
+                min-height: 350px;
+                padding: 60px 0;
+                background-position: center top; 
+            }
+            .banner h2 {
+                font-size: 28px;
+            }
+            .banner p {
+                font-size: 16px;
+            }
+            .banner-btns {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            /* 在小屏幕上，供需表单恢复成一列 */
+            .match-form {
+                grid-template-columns: 1fr; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+    <div class="container header-content">
+        <div class="logo">
+            <h1>零荒汇</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#home">首页</a></li>
+                <li><a href="#supply">发布/查找</a></li>
+                <li><a href="#values">核心优势</a></li>
+                <li><a href="#policy">政策解读</a></li>
+                <li><a href="#about">联系我们</a></li>
+            </ul>
+        </nav>
+        <div class="header-btns">
+            <button class="login-btn" id="show-login-modal">登录</button>
+            <button id="show-register-modal">注册</button>
+        </div>
+    </div>
+</header>
+
+    <section class="banner" id="home">
+        <div class="container">
+            <h2>零荒汇聚资源 沃土智配新生</h2>
+            <p>
+                解决农村零星荒地分散、流转难问题，以多源数据驱动，实现土地价值最大化，助力乡村振兴！
+            </p>
+            <div class="banner-btns">
+                <button onclick="document.getElementById('supply-tab').click(); document.getElementById('supply').scrollIntoView();">发布我的荒地</button>
+                <button onclick="document.getElementById('demand-tab').click(); document.getElementById('supply').scrollIntoView();">查找匹配资源</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="values" id="values">
+        <div class="container">
+            <h3>我们的核心优势</h3>
+            <div class="value-cards">
+                <div class="value-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4470/4470256.png" alt="精准市场定位">
+                    <h4>精准市场定位</h4>
+                    <p>聚焦零星荒地这一蓝海市场，填补市场空白，将闲置的“边角料”土地转化为可持续收益。</p>
+                </div>
+                <div class="value-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6132/6132474.png" alt="一站式服务">
+                    <h4>一站式服务</h4>
+                    <p>提供信息匹配、GIS数字化建档、交易撮合、履约保障等全流程服务，解决供需双方核心痛点。</p>
+                </div>
+                <div class="value-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/8275/8275808.png" alt="技术与创新">
+                    <h4>技术与创新</h4>
+                    <p>利用大数据、AI智能匹配算法、地图可视化等技术，大幅提升信息匹配效率和流转成功率。</p>
+                </div>
+                <div class="value-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7099/7099223.png" alt="政策支持">
+                    <h4>政策与金融赋能</h4>
+                    <p>符合国家乡村振兴政策导向，链接农业金融贷款和政策补贴申报指导，最大化利用效益。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="match" id="supply">
+        <div class="container">
+            <h3>荒地供需对接中心</h3>
+            <div class="match-tabs">
+                <div class="match-tab active" id="supply-tab">我有荒地要出租/流转</div>
+                <div class="match-tab" id="demand-tab">我要找荒地经营</div>
+            </div>
+            <div class="match-content">
+                <div class="supply-form" id="supply-form">
+                    <div class="match-form">
+                        <div class="form-group">
+                            <label>荒地所在地区</label>
+                            <select id="supply-region">
+                                <option value="">请选择省份</option>
+                                <option>河南省 (试点)</option>
+                                <option>四川省 (试点)</option>
+                                <option>湖南省 (试点)</option>
+                                <option>贵州省 (试点)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>荒地面积（亩）</label>
+                            <input type="number" id="supply-area" placeholder="请输入面积，如 3.5">
+                        </div>
+                        <div class="form-group">
+                            <label>权属类型</label>
+                            <select id="supply-ownership">
+                                <option value="">请选择权属</option>
+                                <option>农户自有</option>
+                                <option>村集体所有</option>
+                                <option>其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>流转方式</label>
+                            <select id="supply-method">
+                                <option value="">请选择方式</option>
+                                <option>出租</option>
+                                <option>转包</option>
+                                <option>转让</option>
+                                <option>入股</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>期望价格（元/亩/年）</label>
+                            <input type="number" id="supply-price" placeholder="请输入价格">
+                        </div>
+                        <div class="form-group">
+                            <label>联系人电话</label>
+                            <input type="tel" id="supply-phone" placeholder="请输入手机号" required>
+                        </div>
+                    </div>
+                    <button style="margin-top: 16px; width: 100%;">发布荒地信息</button>
+                </div>
+
+                <div class="demand-form" id="demand-form" style="display: none;">
+                    <div class="match-form">
+                        <div class="form-group">
+                            <label>意向地区</label>
+                            <select id="demand-region">
+                                <option value="">请选择省份</option>
+                                <option>河南省 (试点)</option>
+                                <option>四川省 (试点)</option>
+                                <option>湖南省 (试点)</option>
+                                <option>贵州省 (试点)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>所需面积（亩）</label>
+                            <input type="number" id="demand-area" placeholder="所需 5-10 亩连片">
+                        </div>
+                        <div class="form-group">
+                            <label>经营用途</label>
+                            <select id="demand-purpose">
+                                <option value="">请选择用途</option>
+                                <option>高附加值种植</option>
+                                <option>生态复垦</option>
+                                <option>家庭农场/休闲农业</option>
+                                <option>养殖</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>预算（元/亩/年）</label>
+                            <input type="number" id="demand-budget" placeholder="请输入预算">
+                        </div>
+                        <div class="form-group">
+                            <label>流转年限</label>
+                            <input type="number" id="demand-years" placeholder="请输入年限">
+                        </div>
+                        <div class="form-group">
+                            <label>联系人电话</label>
+                            <input type="tel" id="demand-phone" placeholder="请输入手机号" required>
+                        </div>
+                    </div>
+                    <button style="margin-top: 16px; width: 100%;">发布需求信息</button>
+                </div>
+
+                <div class="match-result">
+                    <h4>最新匹配成功的荒地资源（基于平台数据）</h4>
+                    <div class="land-item">
+                        <div class="land-info">
+                            <h4>【供】河南·信阳 3.5亩闲置农田</h4>
+                            <p>面积：3.5亩 | 权属：农户自有 | 流转：出租 | 价格：800元/亩/年</p>
+                            <p>特点：地块平整，靠近村道，适合小型种植户。</p>
+                        </div>
+                        <div class="land-action">
+                            <button>立即对接</button>
+                        </div>
+                    </div>
+                    <div class="land-item">
+                        <div class="land-info">
+                            <h4>【供】四川·成都郊区 1.2亩体验农场</h4>
+                            <p>面积：1.2亩 | 权属：集体流转 | 流转：转包 | 价格：2800元/亩/年</p>
+                            <p>特点：周边有水源，环境优美，适合城市家庭农场。</p>
+                        </div>
+                        <div class="land-action">
+                            <button>立即对接</button>
+                        </div>
+                    </div>
+                    <div class="land-item">
+                        <div class="land-info">
+                            <h4>【需】企业ESG项目 需求100+亩生态复垦地</h4>
+                            <p>用途：生态修复/碳汇项目 | 预算：5000元/亩/年（含托管） | 意向：湖南/贵州</p>
+                            <p>要求：需连片且权属清晰，可长期稳定合作。</p>
+                        </div>
+                        <div class="land-action">
+                            <button>查看详情</button>
+                        </div>
+                    </div>
+                    <a href="#" style="display: block; text-align: center; margin-top: 20px;">查看更多匹配结果 →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="policy" id="policy">
+        <div class="container">
+            <h3>荒地流转政策解读与指导</h3>
+            <div class="policy-list">
+                <div class="policy-item">
+                    <h4>农村土地经营权流转管理办法</h4>
+                    <p>明确土地经营权流转应当坚持农村土地农民集体所有、农户家庭承包经营的基本制度，遵循依法、自愿、有偿原则，不得改变土地所有权性质和土地农业用途。</p>
+                    <a href="#" id="policy-land-rights">查看全文 →</a>
+                </div>
+                <div class="policy-item">
+                    <h4>零星荒地利用补贴政策（试点）</h4>
+                    <p>对集中连片整治零星荒地5亩以上的经营主体，给予每亩200-500元的整治补贴，用于土地平整、灌溉设施建设等基础改造。</p>
+                    <a href="#" id="policy-subsidy">查看全文 →</a>
+                </div>
+                <div class="policy-item">
+                    <h4>农村集体经营性建设用地入市试点</h4>
+                    <p>允许农村集体经营性建设用地入市，与国有建设用地同等入市、同权同价，为荒地流转提供更多市场化路径。</p>
+                    <a href="#" id="policy-collective-land">查看全文 →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="about">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>关于我们</h4>
+                    <ul>
+                        <li><a href="#" id="show-team-modal">团队介绍</a></li>
+                        <li><a href="#">服务流程</a></li>
+                        <li><a href="#">收费标准 (佣金3%-8%)</a></li>
+                        <li><a href="#">合作伙伴</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>帮助中心</h4>
+                    <ul>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="#">发布指南</a></li>
+                        <li><a href="#">交易保障</a></li>
+                        <li><a href="#">投诉建议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>联系方式</h4>
+                    <ul>
+                        <li>客服电话：0371-1234567</li>
+                        <li>邮箱：12345678.com</li>
+                        <li>地址：郑州市金水区金水东路180号</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>关注我们</h4>
+                    <ul>
+                        <li><a href="#">微信公众号</a></li>
+                        <li><a href="#">抖音号</a></li>
+                        <li><a href="#">视频号</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                © 2025 零荒汇-基于多源数据整合的农村零星荒地智能匹配平台 版权所有
+            </div>
+        </div>
+    </footer>
+
+    <!-- 登录弹窗 -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content login-modal-content">
+            <span class="modal-close" onclick="document.getElementById('login-modal').style.display = 'none';">&times;</span>
+            <h4>欢迎登录 零荒汇</h4>
+            <form>
+                <div class="input-group">
+                    <input type="tel" placeholder="请输入手机号" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="请输入密码" required>
+                </div>
+                
+                <a href="#" style="float: right; margin-bottom: 10px; font-size: 14px;" id="show-forgot-password-modal">忘记密码？</a>
+
+                <button type="submit">立即登录</button>
+            </form>
+            <div class="modal-switch">
+                <a href="#" id="switch-to-sms-login">切换到短信登录</a> | 
+                还没有账号？<a href="#" onclick="showRegisterModal(event)">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div id="register-modal" class="modal-overlay">
+        <div class="modal-content login-modal-content">
+            <span class="modal-close" onclick="document.getElementById('register-modal').style.display = 'none';">&times;</span>
+            <h4>注册新账号</h4>
+            <form>
+                <div class="input-group">
+                    <input type="tel" placeholder="请输入手机号" required>
+                </div>
+                <div class="code-input-group">
+                    <input type="text" id="register-code" placeholder="请输入短信验证码" required>
+                    <button type="button" class="send-code" id="register-send-code">获取验证码</button>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="设置登录密码 (8-16位)" required>
+                </div>
+                
+                <button type="submit">确认注册</button>
+            </form>
+            <div class="modal-switch">
+                已有账号？<a href="#" onclick="showLoginModal(event)">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 短信登录弹窗 -->
+    <div id="sms-login-modal" class="modal-overlay">
+        <div class="modal-content login-modal-content">
+            <span class="modal-close" onclick="document.getElementById('sms-login-modal').style.display = 'none';">&times;</span>
+            <h4>短信快捷登录</h4>
+            <form>
+                <div class="input-group">
+                    <input type="tel" placeholder="请输入手机号" required>
+                </div>
+                <div class="code-input-group">
+                    <input type="text" id="sms-login-code" placeholder="请输入短信验证码" required>
+                    <button type="button" class="send-code" id="sms-login-send-code">获取验证码</button>
+                </div>
+                
+                <button type="submit">立即登录</button>
+            </form>
+            <div class="modal-switch">
+                <a href="#" onclick="showLoginModal(event)">切换到密码登录</a> | 
+                还没有账号？<a href="#" onclick="showRegisterModal(event)">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 忘记密码弹窗 -->
+    <div id="forgot-password-modal" class="modal-overlay">
+        <div class="modal-content login-modal-content">
+            <span class="modal-close" onclick="document.getElementById('forgot-password-modal').style.display = 'none';">&times;</span>
+            <h4>重置密码</h4>
+            <form>
+                <div class="input-group">
+                    <input type="tel" placeholder="请输入注册时使用的手机号" required>
+                </div>
+                <div class="code-input-group">
+                    <input type="text" id="forgot-password-code" placeholder="请输入短信验证码" required>
+                    <button type="button" class="send-code" id="forgot-password-send-code">获取验证码</button>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="设置新密码 (8-16位)" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="再次确认新密码" required>
+                </div>
+                
+                <button type="submit">确认重置</button>
+            </form>
+            <div class="modal-switch">
+                <a href="#" onclick="showLoginModal(event)">返回登录</a> | 
+                <a href="#" onclick="showRegisterModal(event)">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 政策弹窗 -->
+    <div id="policy-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('policy-modal').style.display = 'none';">&times;</span>
+            <h4 id="modal-title"></h4>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 团队介绍弹窗 -->
+    <div id="team-modal" class="modal-overlay">
+        <div class="modal-content team-modal-content">
+            <span class="modal-close" onclick="document.getElementById('team-modal').style.display = 'none';">&times;</span>
+            <h4>零荒汇核心团队成员</h4>
+            <p>我们的团队由来自不同专业领域的优秀人才组成，涵盖金融、会计、计算机、软件工程、法学等多个学科，为平台的发展提供了多元化的专业支撑：</p>
+            <ul class="team-list">
+                <li>秦湲泽（金融学）：专注于农村土地金融产品设计与市场分析</li>
+                <li>王佳亮（金融学）：负责平台的投融资与商业变现模式规划</li>
+                <li>杜星彤（金融学）：主导荒地流转的价格评估与风险控制</li>
+                <li>李润泽（会计学）：统筹平台的财务核算与成本管控工作</li>
+                <li>王源（计算机科学与技术）：负责大数据与AI匹配算法的研发</li>
+                <li>杨诗涵（软件工程）：主导平台的前端开发与用户体验优化</li>
+                <li>郝宁涛（法学）：提供土地流转的法律合规与合同风控支持</li>
+                <li>夏语娴（金融学）：专注于乡村振兴政策研究与补贴申报指导</li>
+            </ul>
+            <p>我们始终秉持着专业、创新、协作的理念，致力于解决农村零星荒地流转的痛点问题。如果你也怀揣着助力乡村发展的梦想，并且拥有相关的专业技能，你也可以加入我们的团队，一同为农村土地资源的高效利用贡献力量！</p>
+            <a href="#" class="join-btn">加入我们</a>
+        </div>
+    </div>
+    
+    <script id="policy-text-data" type="application/json">
+    {
+        "policy-land-rights": {
+            "title": "农村土地经营权流转管理办法",
+            "content": [
+                "**第一条：** 为规范农村土地经营权流转行为，保护流转双方当事人合法权益，促进农业适度规模经营，发展现代农业，根据《中华人民共和国农村土地承包法》等法律法规，制定本办法。",
+                "**第二条：** 农村土地经营权流转应当坚持农村土地农民集体所有、农户家庭承包经营的基本制度，遵循依法、自愿、有偿原则，不得改变土地所有权性质和土地农业用途。",
+                "**第三条：** 农村土地经营权流转的受让方，应当具有相应的农业经营能力。工商企业等社会资本通过流转取得土地经营权的，应当符合国家规定。",
+                "**第四条：** 流转期限不得超过承包期的剩余期限。土地经营权流转合同一般包括以下内容：流转双方的名称和住所；流转土地的名称、面积、地块、质量等级；流转期限和起止日期；流转用途；双方的权利和义务；流转价款及支付方式；违约责任。",
+                "**（更多内容请参阅国家正式文件）**"
+            ]
+        },
+        "policy-subsidy": {
+            "title": "零星荒地利用补贴政策（试点）",
+            "content": [
+                "各地方政府为鼓励农村零星荒地复垦与再利用，出台了专项补贴政策。",
+                "1. **补贴对象：** 集中连片整治零星荒地5亩以上的家庭农场、农业合作社、农业企业等经营主体。",
+                "2. **补贴标准：** 根据地块的荒废程度、复垦难度和所在区域，给予每亩200元至500元不等的整治补贴，用于土地平整、土壤改良、水利灌溉设施建设等前期基础改造投入。",
+                "3. **资金用途：** 补贴资金主要用于土地平整、土壤改良、水利灌溉设施建设等前期基础改造投入。",
+                "4. **申报流程：** 经营主体向所在乡镇农业农村部门提交复垦方案、荒地流转合同及相关证明材料，经县级部门审核验收后拨付。",
+                "**（注：具体补贴标准和申报细则，请以当地政府官方公告为准。平台可提供政策申报指导服务。）**"
+            ]
+        },
+        "policy-collective-land": {
+            "title": "农村集体经营性建设用地入市试点",
+            "content": [
+                "为深化农村土地制度改革，国家允许农村集体经营性建设用地出让、租赁等方式，与国有建设用地同等入市、同权同价。",
+                "1. **地块范围：** 仅限于集体经营性建设用地，不包括耕地、宅基地。",
+                "2. **流转方式：** 可以是出让、租赁、作价出资（入股）等。",
+                "3. **意义：** 打破了城乡二元土地市场，激活了农村闲置建设用地资源，为乡村产业发展（如农产品加工、仓储物流、乡村旅游设施）提供了合法、有保障的用地。",
+                "本项目通过平台提供权属清晰的荒地信息，结合此政策，为投资者提供了更多元、合规的土地利用模式。"
+            ]
+        }
+    }
+    </script>
+
+    <script>
+        // --- 供需标签切换逻辑 ---
+        const supplyTab = document.getElementById('supply-tab');
+        const demandTab = document.getElementById('demand-tab');
+        const supplyForm = document.getElementById('supply-form');
+        const demandForm = document.getElementById('demand-form');
+
+        function setActiveTab(activeTab, inactiveTab, activeForm, inactiveForm) {
+            activeTab.classList.add('active');
+            inactiveTab.classList.remove('active');
+            activeForm.style.display = 'block';
+            inactiveForm.style.display = 'none';
+        }
+
+        supplyTab.addEventListener('click', function() {
+            setActiveTab(supplyTab, demandTab, supplyForm, demandForm);
+        });
+
+        demandTab.addEventListener('click', function() {
+            setActiveTab(demandTab, supplyTab, demandForm, supplyForm);
+        });
+
+        // ----------------------------------------------------
+        // --- 供需表单提交校验逻辑 (已优化成功提示) ---
+        // ----------------------------------------------------
+        
+        const submitBtns = document.querySelectorAll('.match-content button');
+        
+        // 统一成功提示信息
+        const successMessage = '信息已提交，进入审核阶段！我们将在1-2个工作日内完成GIS数据建档与智能匹配。';
+        
+        submitBtns.forEach(btn => {
+            if (btn.textContent.includes('发布荒地信息')) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault(); 
+                    
+                    // 获取供方表单的六个字段 (使用ID获取)
+                    const region = document.getElementById('supply-region').value.trim();
+                    const area = document.getElementById('supply-area').value.trim();
+                    const ownership = document.getElementById('supply-ownership').value.trim();
+                    const method = document.getElementById('supply-method').value.trim();
+                    const price = document.getElementById('supply-price').value.trim();
+                    const phone = document.getElementById('supply-phone').value.trim();
+                    
+                    let isFormValid = true;
+
+                    // 校验所有字段是否填写，数字字段是否大于0，以及电话格式
+                    if (region === '' || area === '' || parseFloat(area) <= 0 || ownership === '' || method === '' || price === '' || parseFloat(price) <= 0 || phone === '' || !/^1[3-9]\d{9}$/.test(phone)) {
+                        isFormValid = false;
+                    }
+                    
+                    // 统一提示未填写信息
+                    if (!isFormValid) {
+                        alert('请填写完整所有的信息！');
+                        return;
+                    }
+
+                    // 所有校验通过，显示完整的成功提示
+                    alert(successMessage);
+                });
+            }
+            
+            // 需方表单 (发布需求信息) 逻辑
+            if (btn.textContent.includes('发布需求信息')) {
+                 btn.addEventListener('click', function(e) {
+                    e.preventDefault(); 
+
+                    // 获取需方表单的六个字段 (使用ID获取)
+                    const region = document.getElementById('demand-region').value.trim();
+                    const area = document.getElementById('demand-area').value.trim();
+                    const purpose = document.getElementById('demand-purpose').value.trim();
+                    const budget = document.getElementById('demand-budget').value.trim();
+                    const years = document.getElementById('demand-years').value.trim();
+                    const phone = document.getElementById('demand-phone').value.trim();
+                    
+                    let isFormValid = true;
+
+                    // 校验所有字段是否填写，数字字段是否大于0，以及电话格式
+                    // 注意：这里的校验要求所有六个字段都必须有效
+                    if (region === '' || area === '' || parseFloat(area) <= 0 || purpose === '' || budget === '' || parseFloat(budget) <= 0 || years === '' || parseInt(years) <= 0 || phone === '' || !/^1[3-9]\d{9}$/.test(phone)) {
+                        isFormValid = false;
+                    }
+                    
+                    if (!isFormValid) {
+                        alert('请填写完整所有的信息！');
+                        return;
+                    }
+                    
+                    // 所有校验通过，显示完整的成功提示
+                    alert(successMessage); 
+                });
+            }
+        });
+        
+        // --- 政策详情弹窗逻辑 ---
+        const policyData = JSON.parse(document.getElementById('policy-text-data').textContent);
+        const policyLinks = document.querySelectorAll('#policy-land-rights, #policy-subsidy, #policy-collective-land');
+        const policyModal = document.getElementById('policy-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+
+        policyLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const policyId = this.id;
+                const data = policyData[policyId];
+
+                if (data) {
+                    modalTitle.textContent = data.title;
+                    modalBody.innerHTML = ''; 
+                    data.content.forEach(paragraph => {
+                        let htmlParagraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        modalBody.innerHTML += `<p>${htmlParagraph}</p>`;
+                    });
+                    policyModal.style.display = 'flex';
+                }
+            });
+        });
+
+        // --- 登录/注册/短信登录/忘记密码 弹窗逻辑 ---
+        const loginModal = document.getElementById('login-modal');
+        const registerModal = document.getElementById('register-modal');
+        const smsLoginModal = document.getElementById('sms-login-modal');
+        const forgotPasswordModal = document.getElementById('forgot-password-modal');
+        
+        const showLoginBtn = document.getElementById('show-login-modal');
+        const showRegisterBtn = document.getElementById('show-register-modal');
+        const switchToSmsLoginLink = document.getElementById('switch-to-sms-login');
+        const showForgotPasswordBtn = document.getElementById('show-forgot-password-modal');
+
+        function hideAllModals() {
+            loginModal.style.display = 'none';
+            registerModal.style.display = 'none';
+            smsLoginModal.style.display = 'none';
+            forgotPasswordModal.style.display = 'none';
+            document.getElementById('team-modal').style.display = 'none';
+            policyModal.style.display = 'none';
+        }
+
+        function showLoginModal(e) {
+            if (e) e.preventDefault();
+            hideAllModals();
+            loginModal.style.display = 'flex';
+        }
+        showLoginBtn.addEventListener('click', showLoginModal);
+
+        function showRegisterModal(e) {
+            if (e) e.preventDefault();
+            hideAllModals();
+            registerModal.style.display = 'flex';
+        }
+        showRegisterBtn.addEventListener('click', showRegisterModal);
+
+        function showSmsLoginModal(e) {
+            if (e) e.preventDefault();
+            hideAllModals();
+            smsLoginModal.style.display = 'flex';
+        }
+        switchToSmsLoginLink.addEventListener('click', showSmsLoginModal);
+
+        function showForgotPasswordModal(e) {
+            if (e) e.preventDefault();
+            hideAllModals();
+            forgotPasswordModal.style.display = 'flex';
+        }
+        showForgotPasswordBtn.addEventListener('click', showForgotPasswordModal);
+
+        // --- 团队介绍弹窗逻辑 ---
+        const showTeamModalBtn = document.getElementById('show-team-modal');
+        const teamModal = document.getElementById('team-modal');
+        showTeamModalBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            hideAllModals();
+            teamModal.style.display = 'flex';
+        });
+
+        // --- 验证码倒计时逻辑 (模拟) ---
+        const registerSendCodeBtn = document.getElementById('register-send-code');
+        const smsLoginSendCodeBtn = document.getElementById('sms-login-send-code');
+        const forgotPasswordSendCodeBtn = document.getElementById('forgot-password-send-code');
+
+        function startCountdown(buttonElement) {
+            let countdown = 60;
+            
+            let phoneInput;
+            let modalElement = buttonElement.closest('.modal-overlay');
+            let modalId = modalElement ? modalElement.id : '';
+
+            if (modalId === 'register-modal') {
+                phoneInput = document.querySelector('#register-modal input[type="tel"]');
+            } else if (modalId === 'sms-login-modal') {
+                phoneInput = document.querySelector('#sms-login-modal input[type="tel"]');
+            } else if (modalId === 'forgot-password-modal') {
+                phoneInput = document.querySelector('#forgot-password-modal input[type="tel"]');
+            }
+            
+            const phoneNumber = phoneInput ? phoneInput.value.trim() : '';
+
+            if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+                alert('请输入有效的手机号码！');
+                return;
+            }
+
+            buttonElement.disabled = true;
+            buttonElement.textContent = `${countdown}s 后重发`;
+
+            const timer = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    buttonElement.textContent = '获取验证码';
+                    buttonElement.disabled = false;
+                } else {
+                    buttonElement.textContent = `${countdown}s 后重发`;
+                }
+            }, 1000);
+
+            console.log(`[演示] 正在向手机号 ${phoneNumber} 发送验证码...`);
+        }
+
+        registerSendCodeBtn.addEventListener('click', function() {
+            startCountdown(registerSendCodeBtn);
+        });
+        smsLoginSendCodeBtn.addEventListener('click', function() {
+            startCountdown(smsLoginSendCodeBtn);
+        });
+        forgotPasswordSendCodeBtn.addEventListener('click', function() {
+            startCountdown(forgotPasswordSendCodeBtn);
+        });
+        
+        // --- 登录/注册/忘记密码 表单提交校验逻辑 ---
+        const loginForm = document.querySelector('#login-modal form');
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const phoneInput = this.querySelector('input[type="tel"]').value.trim();
+            const passwordInput = this.querySelector('input[type="password"]').value;
+            if (!phoneInput || !passwordInput) {
+                alert('请输入手机号和密码才能登录！');
+                return;
+            }
+            alert('登录成功！(仅演示)');
+        });
+
+        const smsLoginForm = document.querySelector('#sms-login-modal form');
+        smsLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const phoneInput = this.querySelector('input[type="tel"]').value.trim();
+            const codeInput = this.querySelector('input[type="text"]').value.trim();
+            if (!phoneInput || !codeInput) {
+                alert('请输入手机号和验证码才能登录！');
+                return;
+            }
+            alert('短信快捷登录成功！(仅演示)');
+        });
+
+        const registerForm = document.querySelector('#register-modal form');
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const passwordInput = this.querySelector('input[type="password"]');
+            const password = passwordInput.value;
+            const phoneInput = this.querySelector('input[type="tel"]').value.trim();
+            const codeInput = this.querySelector('input[type="text"]').value.trim();
+            if (!phoneInput || !codeInput || !password) {
+                alert('请填写完整所有的注册信息！');
+                return;
+            }
+            if (password.length < 8 || password.length > 16) {
+                alert('注册失败：密码长度必须在 8 到 16 位之间！');
+                passwordInput.focus();
+                return;
+            }
+            alert('注册成功！(仅演示) 您的账号信息已保存。');
+        });
+        
+        const forgotPasswordForm = document.querySelector('#forgot-password-modal form');
+        forgotPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const passwordInputs = this.querySelectorAll('input[type="password"]');
+            const newPassword = passwordInputs[0].value;
+            const confirmPassword = passwordInputs[1].value;
+            const phoneInput = this.querySelector('input[type="tel"]').value.trim();
+            const codeInput = this.querySelector('input[type="text"]').value.trim();
+            if (!phoneInput || !codeInput || !newPassword || !confirmPassword) {
+                 alert('请填写完整所有的信息！');
+                 return;
+            }
+            if (newPassword !== confirmPassword) {
+                alert('错误：两次输入的密码不一致，请重新输入！');
+                passwordInputs[1].value = ''; 
+                passwordInputs[1].focus(); 
+                return; 
+            }
+            if (newPassword.length < 8 || newPassword.length > 16) {
+                alert('密码长度不符合要求 (需 8-16 位)');
+                return;
+            }
+            alert('密码重置请求已发送！如果验证码正确，您的密码将更新。 (仅演示)');
+        });
+
+        // 点击弹窗外部关闭弹窗
+        window.addEventListener('click', function(e) {
+            const modals = document.querySelectorAll('.modal-overlay');
+            modals.forEach(modal => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
