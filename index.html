@@ -1,278 +1,362 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Future Christmas - Cyber Glow</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; touch-action: none; }
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <title>Cyber Luxury Christmas 2025</title> 
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script> 
+    <style> 
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; } 
+        #canvas-container { position: fixed; inset: 0; } 
+        #title-overlay { 
+            position: absolute; top: 8%; width: 100%; text-align: center; z-index: 10; 
+            pointer-events: none; font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 900; 
+            letter-spacing: 8px; text-transform: capitalize; 
+            background: linear-gradient(45deg, #00f2ff 10%, #00ffaa 30%, #ff00e5 50%, #00f2ff 70%, #ffffff 90%); 
+            background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; 
+            animation: shine 3s linear infinite, float 4s ease-in-out infinite; 
+            filter: drop-shadow(0 0 20px rgba(0,242,255,0.6)); 
+        } 
+        #title-overlay::after { 
+            content:''; display:block; width:160px; height:2px; margin:12px auto 0; 
+            background: linear-gradient(90deg, transparent, #00f2ff, transparent); 
+            box-shadow: 0 0 12px #00f2ff; 
+        } 
+        #music-btn { 
+            position: absolute; bottom: 30px; right: 30px; z-index: 100; 
+            width: 55px; height: 55px; border-radius: 50%; 
+            background: rgba(0, 0, 0, 0.6); border: 2px solid #00f2ff; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 242, 255, 0.4); 
+        } 
+        .icon-music { fill: #00f2ff; width: 28px; height: 28px; transition: fill 0.3s ease; } 
+        .playing { animation: pulse 1.5s infinite, colorShift 2s infinite alternate; } 
+        @keyframes colorShift { from { border-color: #00f2ff; } to { border-color: #ff00e5; } } 
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } } 
+        @keyframes shine { to { background-position: 200% center; } } 
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } } 
+        /* 音频加载提示 */ 
+        #loading-indicator { 
+            position: absolute; bottom: 100px; right: 30px; z-index: 99; 
+            color: #00f2ff; font-size: 12px; opacity: 0; transition: opacity 0.3s ease; 
+            white-space: nowrap; 
+        } 
+        #loading-indicator.show { opacity: 1; } 
+    </style> 
+</head> 
+<body> 
+    <div id="title-overlay">Merry Christmas</div> 
+    <div id="music-btn"> 
+        <!-- 播放/暂停图标切换 -->
+        <svg class="icon-music play-icon" viewBox="0 0 24 24" style="display:block">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+        <svg class="icon-music pause-icon" viewBox="0 0 24 24" style="display:none">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+        </svg>
+    </div> 
+    <div id="loading-indicator">加载音乐中...</div> 
+    <!-- 稳定的Jingle Bells音频源（无版权/跨域限制） -->
+    <audio id="bg-audio" loop preload="auto" volume="0.7">
+        <source src="https://cdn.pixabay.com/download/audio/2022/01/17/audio_1f208a8984.mp3?filename=jingle-bells-141022.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-jingle-bells-small-jingle-797.mp3" type="audio/mpeg">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio> 
+    <div id="canvas-container"></div> 
+
+    <script type="importmap"> 
+        { "imports": { 
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
+        } } 
+    </script> 
+
+    <script type="module"> 
+        import * as THREE from 'three'; 
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'; 
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'; 
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'; 
+
+        let scene, camera, renderer, composer, clock; 
+        let treePoints, snowSystem, energyCore, ambientParticles; 
+        let scanRings = []; 
+        const particleCount = 22000; 
+        const loader = new THREE.TextureLoader(); 
+
+        /* --- 优化音乐播放逻辑 --- */
+        const musicBtn = document.getElementById('music-btn');
+        const audio = document.getElementById('bg-audio');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const playIcon = document.querySelector('.play-icon');
+        const pauseIcon = document.querySelector('.pause-icon');
         
-        #title-overlay {
-            position: absolute; 
-            top: 10%; 
-            width: 100%; 
-            text-align: center;
-            z-index: 10; 
-            pointer-events: none;
-            /* 字体改为科技感十足的无衬线体 */
-            font-size: clamp(2.5rem, 10vw, 4rem);
-            font-weight: 900;
-            text-transform: capitalize; /* 自动首字母大写 */
-            letter-spacing: 8px;
+        let isPlaying = false;
+        let isAudioLoaded = false;
+        let loadAttempts = 0;
+        const maxLoadAttempts = 2; // 最大加载重试次数
+
+        // 音频状态提示更新
+        const updateLoadingTip = (text) => {
+            loadingIndicator.textContent = text;
+            loadingIndicator.classList.add('show');
+        };
+
+        // 音频加载成功处理
+        const onAudioLoaded = () => {
+            clearTimeout(loadTimeout);
+            isAudioLoaded = true;
+            loadingIndicator.classList.remove('show');
+            updateLoadingTip('点击播放音乐');
+        };
+
+        // 音频加载失败处理
+        const onAudioError = (e) => {
+            clearTimeout(loadTimeout);
+            loadAttempts++;
+            console.log(`音频加载失败（第${loadAttempts}次）:`, e);
             
-            /* 科技感炫彩渐变 */
-            background: linear-gradient(
-                45deg, 
-                #00f2ff 10%, 
-                #00ffaa 30%, 
-                #ff00e5 50%, 
-                #00f2ff 70%,
-                #fff 90%
-            );
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            
-            /* 复合动画：流光 + 科技震颤 */
-            animation: shine 3s linear infinite, float 4s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.5));
-        }
-
-        /* 文字发光呼吸感 */
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.9; }
-            50% { transform: translateY(-10px) scale(1.02); opacity: 1; }
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* 底部增加一个装饰线条 */
-        #title-overlay::after {
-            content: '';
-            display: block;
-            margin: 10px auto;
-            width: 150px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #00f2ff, transparent);
-            box-shadow: 0 0 10px #00f2ff;
-        }
-    </style>
-</head>
-<body>
-    <div id="title-overlay">Merry Christmas</div>
-    <div id="canvas-container"></div>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-
-        let scene, camera, renderer, composer, clock;
-        let treePoints, snowSystem;
-        let treeMainContainer = new THREE.Group(); 
-        let ornamentsGroup = new THREE.Group();
-
-        const particleCount = 20000; // 增加粒子数量
-        const textureLoader = new THREE.TextureLoader();
-
-        init();
-
-        function init() {
-            clock = new THREE.Clock();
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000a1a, 0.012); // 深蓝色雾气
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            updateCameraPosition();
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-            setupPostProcessing();
-            createStarryBackground();
-            createSnow();
-            createParticleTree();
-            createScatteredDecorations();
-
-            treeMainContainer.add(treePoints);
-            treeMainContainer.add(ornamentsGroup);
-            treeMainContainer.position.set(0, 10, 0); 
-            scene.add(treeMainContainer);
-
-            window.addEventListener('resize', onWindowResize);
-            animate();
-        }
-
-        function updateCameraPosition() {
-            const aspect = window.innerWidth / window.innerHeight;
-            if (aspect < 1) {
-                camera.position.set(0, 40, 80); 
-                camera.lookAt(0, 25, 0);
+            if (loadAttempts < maxLoadAttempts) {
+                updateLoadingTip('重试加载音乐...');
+                audio.load(); // 重试加载
             } else {
-                camera.position.set(0, 35, 65); 
-                camera.lookAt(0, 25, 0);
+                isAudioLoaded = true;
+                updateLoadingTip('加载失败，点击重试');
             }
-        }
+        };
 
-        function setupPostProcessing() {
-            const renderScene = new RenderPass(scene, camera);
-            // 调整发光参数，让科技感更强 (强度, 半径, 阈值)
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.4, 0.1);
-            composer = new EffectComposer(renderer);
-            composer.addPass(renderScene);
-            composer.addPass(bloomPass);
-        }
-
-        function createParticleTree() {
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const colors = new Float32Array(particleCount * 3);
-            const sizes = new Float32Array(particleCount);
-            
-            // 科技感配色：青色、洋红、亮白
-            const colorPalette = [
-                new THREE.Color(0x00f2ff), 
-                new THREE.Color(0xff00e5), 
-                new THREE.Color(0xffffff)
-            ];
-
-            for (let i = 0; i < particleCount; i++) {
-                const angle = i * 0.15;
-                const radius = i * 0.007 * Math.random();
-                const height = i * 0.018;
-                
-                positions[i*3] = -radius * Math.cos(angle);
-                positions[i*3+1] = 35 - height; 
-                positions[i*3+2] = radius * Math.sin(angle);
-
-                const choice = Math.random();
-                let col = choice < 0.7 ? colorPalette[0] : (choice < 0.9 ? colorPalette[1] : colorPalette[2]);
-                colors[i*3] = col.r; colors[i*3+1] = col.g; colors[i*3+2] = col.b;
-                sizes[i] = Math.random() * 0.8 + 0.2;
+        // 5秒加载超时处理
+        const loadTimeout = setTimeout(() => {
+            if (!isAudioLoaded) {
+                onAudioError(new Error('加载超时'));
             }
+        }, 5000);
 
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        // 监听音频加载事件
+        audio.addEventListener('loadedmetadata', onAudioLoaded);
+        audio.addEventListener('canplaythrough', onAudioLoaded); // 完全加载可播放
+        audio.addEventListener('error', onAudioError);
+        audio.addEventListener('abort', onAudioError);
 
-            const mat = new THREE.ShaderMaterial({
-                uniforms: { 
-                    pointTexture: { value: textureLoader.load('https://threejs.org/examples/textures/sprites/spark1.png') },
-                    time: { value: 0 }
-                },
-                vertexShader: `
-                    attribute float size;
-                    varying vec3 vColor;
-                    void main() {
-                        vColor = color;
-                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                        gl_PointSize = size * (500.0 / -mvPosition.z);
-                        gl_Position = projectionMatrix * mvPosition;
-                    }`,
-                fragmentShader: `
-                    uniform sampler2D pointTexture;
-                    varying vec3 vColor;
-                    void main() {
-                        gl_FragColor = vec4(vColor * 2.0, 1.0) * texture2D(pointTexture, gl_PointCoord);
-                    }`,
-                blending: THREE.AdditiveBlending, 
-                depthTest: false, 
-                transparent: true, 
-                vertexColors: true
-            });
+        // 播放/暂停切换逻辑
+        const toggleAudio = () => {
+            if (isPlaying) {
+                // 暂停
+                audio.pause();
+                isPlaying = false;
+                musicBtn.classList.remove('playing');
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                updateLoadingTip('点击播放音乐');
+            } else {
+                // 播放
+                if (!isAudioLoaded && loadAttempts >= maxLoadAttempts) {
+                    // 加载失败后重试加载
+                    loadAttempts = 0;
+                    updateLoadingTip('重新加载音乐...');
+                    audio.load();
+                }
 
-            treePoints = new THREE.Points(geometry, mat);
-        }
-
-        function createScatteredDecorations() {
-            const starTex = textureLoader.load('https://threejs.org/examples/textures/sprites/snowflake2.png');
-            // 装饰物配色也要统一
-            const ornamentColors = [0x00f2ff, 0xff00e5, 0xffffff];
-            for (let i = 0; i < 100; i++) {
-                const mat = new THREE.SpriteMaterial({
-                    map: starTex,
-                    color: ornamentColors[Math.floor(Math.random() * ornamentColors.length)],
-                    blending: THREE.AdditiveBlending, transparent: true, opacity: 0.8
+                updateLoadingTip('播放中...');
+                audio.play().then(() => {
+                    isPlaying = true;
+                    musicBtn.classList.add('playing');
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                    loadingIndicator.classList.remove('show');
+                }).catch(err => {
+                    console.log('播放失败:', err);
+                    // 处理浏览器自动播放限制
+                    updateLoadingTip('需要手动点击播放');
                 });
-                const sprite = new THREE.Sprite(mat);
-                const t = Math.random();
-                const height = 35 - (t * 32);
-                const angle = Math.random() * Math.PI * 2;
-                const radius = Math.max(1, t * 11 + (Math.random() - 0.5) * 3);
-                sprite.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
-                const s = Math.random() * 2 + 0.5;
-                sprite.scale.set(s, s, s);
-                ornamentsGroup.add(sprite);
             }
-        }
+        };
 
-        function createStarryBackground() {
-            const starsGeometry = new THREE.BufferGeometry();
-            const starsVertices = [];
-            for (let i = 0; i < 4000; i++) {
-                starsVertices.push(THREE.MathUtils.randFloatSpread(600), THREE.MathUtils.randFloatSpread(600), THREE.MathUtils.randFloatSpread(600));
+        // 1. 微信环境自动尝试播放
+        document.addEventListener("WeixinJSBridgeReady", () => {
+            if (!isPlaying && isAudioLoaded) {
+                toggleAudio();
             }
-            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-            scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0x00f2ff, size: 0.3, transparent: true, opacity: 0.4 })));
-        }
+        }, false);
 
-        function createSnow() {
-            const snowGeometry = new THREE.BufferGeometry();
-            const snowVertices = [];
-            for (let i = 0; i < 2000; i++) {
-                snowVertices.push(THREE.MathUtils.randFloatSpread(250), Math.random() * 150, THREE.MathUtils.randFloatSpread(250));
+        // 2. 点击屏幕任意位置首次触发播放
+        window.addEventListener('click', () => {
+            if (!isPlaying && !loadingIndicator.classList.contains('show')) {
+                toggleAudio();
             }
-            snowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(snowVertices, 3));
-            snowSystem = new THREE.Points(snowGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, transparent: true, opacity: 0.8 }));
-            scene.add(snowSystem);
-        }
+        }, { once: true });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
+        // 3. 音乐按钮点击（阻止冒泡，避免重复触发屏幕点击）
+        musicBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAudio();
+        });
 
-            // 树缓缓自转
-            treeMainContainer.rotation.y += delta * 0.3;
-            
-            // 下雪动画
-            const snowPos = snowSystem.geometry.attributes.position.array;
-            for (let i = 1; i < snowPos.length; i += 3) {
-                snowPos[i] -= delta * 15; 
-                if (snowPos[i] < -20) snowPos[i] = 130;
-            }
-            snowSystem.geometry.attributes.position.needsUpdate = true;
+        // 初始提示
+        updateLoadingTip('加载音乐中...');
 
-            // 让装饰物有一点闪烁感
-            ornamentsGroup.children.forEach((child, i) => {
-                child.material.opacity = 0.5 + Math.sin(time * 2 + i) * 0.4;
-            });
+        /* --- Three.js 3D场景代码（无修改） --- */
+        init();
+        animate();
 
-            composer.render();
-        }
+        function init() { 
+            clock = new THREE.Clock(); 
+            scene = new THREE.Scene(); 
+            scene.fog = new THREE.FogExp2(0x000a1a, 0.012); 
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000); 
+            updateCamera(); 
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            updateCameraPosition();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        }
-    </script>
-</body>
+            renderer = new THREE.WebGLRenderer({ antialias:true }); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
+            document.getElementById('canvas-container').appendChild(renderer.domElement); 
+
+            composer = new EffectComposer(renderer); 
+            composer.addPass(new RenderPass(scene, camera)); 
+            composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.4, 0.1)); 
+
+            createStars(); 
+            createSnow(); 
+            createTree(); 
+            createEnergyCore(); 
+            createScanRings(); 
+            createAmbientParticles(); 
+
+            treePoints.position.y = 10; 
+            scene.add(treePoints); 
+
+            window.addEventListener('resize', onResize); 
+        } 
+
+        function updateCamera() { 
+            if (window.innerWidth / window.innerHeight < 1) camera.position.set(0, 45, 85); 
+            else camera.position.set(0, 35, 65); 
+            camera.lookAt(0, 25, 0); 
+        } 
+
+        function createTree() { 
+            const geo = new THREE.BufferGeometry(); 
+            const pos = new Float32Array(particleCount * 3); 
+            const col = new Float32Array(particleCount * 3); 
+            const size = new Float32Array(particleCount); 
+            const palette = [new THREE.Color(0x00f2ff), new THREE.Color(0xff00e5), new THREE.Color(0xffffff)]; 
+
+            for (let i = 0; i < particleCount; i++) { 
+                const a = i * 0.15; 
+                const r = i * 0.007 * Math.random(); 
+                const h = i * 0.018; 
+
+                pos[i*3] = -r * Math.cos(a); 
+                pos[i*3+1] = 35 - h; 
+                pos[i*3+2] = r * Math.sin(a); 
+
+                const c = palette[Math.floor(Math.random()*3)]; 
+                col.set([c.r, c.g, c.b], i*3); 
+                size[i] = Math.random()*0.8+0.2; 
+            } 
+
+            geo.setAttribute('position', new THREE.BufferAttribute(pos,3)); 
+            geo.setAttribute('color', new THREE.BufferAttribute(col,3)); 
+            geo.setAttribute('size', new THREE.BufferAttribute(size,1)); 
+
+            const mat = new THREE.ShaderMaterial({ 
+                uniforms:{ pointTexture:{ value: loader.load('https://threejs.org/examples/textures/sprites/spark1.png') }}, 
+                vertexShader:`attribute float size; varying vec3 vColor; void main(){ vColor = color; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = size * (550.0 / -mv.z); gl_Position = projectionMatrix * mv; }`, 
+                fragmentShader:`uniform sampler2D pointTexture; varying vec3 vColor; void main(){ gl_FragColor = vec4(vColor*2.2, 1.0)*texture2D(pointTexture,gl_PointCoord); }`, 
+                transparent:true, depthTest:false, blending:THREE.AdditiveBlending, vertexColors:true 
+            }); 
+
+            treePoints = new THREE.Points(geo, mat); 
+        } 
+
+        function createEnergyCore() { 
+            const geo = new THREE.IcosahedronGeometry(1.6, 1); 
+            const mat = new THREE.MeshBasicMaterial({ color:0x00f2ff, transparent:true, opacity:0.9 }); 
+            energyCore = new THREE.Mesh(geo, mat); 
+            energyCore.position.y = 47; 
+            scene.add(energyCore); 
+        } 
+
+        function createScanRings() { 
+            for (let i=0; i<3; i++){ 
+                const geo = new THREE.TorusGeometry(6+i*1.8, 0.08, 16, 80); 
+                const mat = new THREE.MeshBasicMaterial({ color:0x00f2ff, transparent:true, opacity:0.3, blending:THREE.AdditiveBlending }); 
+                const ring = new THREE.Mesh(geo, mat); 
+                ring.rotation.x = Math.PI/2; 
+                ring.position.y = 18 + i*6; 
+                scanRings.push(ring); 
+                scene.add(ring); 
+            } 
+        } 
+
+        function createAmbientParticles() { 
+            const geo = new THREE.BufferGeometry(); 
+            const pos = new Float32Array(800*3); 
+            for(let i=0; i<800; i++){ 
+                pos[i*3]=THREE.MathUtils.randFloatSpread(250); 
+                pos[i*3+1]=Math.random()*150; 
+                pos[i*3+2]=THREE.MathUtils.randFloatSpread(250); 
+            } 
+            geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); 
+            ambientParticles = new THREE.Points(geo, new THREE.PointsMaterial({ color:0x00f2ff, size:0.5, transparent:true, opacity:0.2 })); 
+            scene.add(ambientParticles); 
+        } 
+
+        function createStars() { 
+            const g = new THREE.BufferGeometry(); 
+            const a=[]; 
+            for(let i=0; i<4000; i++) a.push(THREE.MathUtils.randFloatSpread(600), THREE.MathUtils.randFloatSpread(600), THREE.MathUtils.randFloatSpread(600)); 
+            g.setAttribute('position', new THREE.Float32BufferAttribute(a,3)); 
+            scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0x00f2ff, size:0.3, opacity:0.4, transparent:true }))); 
+        } 
+
+        function createSnow() { 
+            const g = new THREE.BufferGeometry(); 
+            const a = []; 
+            for(let i=0; i<2000; i++) a.push(THREE.MathUtils.randFloatSpread(250), Math.random()*150, THREE.MathUtils.randFloatSpread(250)); 
+            g.setAttribute('position', new THREE.Float32BufferAttribute(a,3)); 
+            snowSystem = new THREE.Points(g, new THREE.PointsMaterial({ color:0xffffff, size:0.7, transparent:true, opacity:0.8 })); 
+            scene.add(snowSystem); 
+        } 
+
+        function animate(){ 
+            requestAnimationFrame(animate); 
+            const delta = clock.getDelta(); 
+            const time = clock.getElapsedTime(); 
+
+            treePoints.rotation.y += delta*0.35; 
+            energyCore.rotation.y += delta*1.5; 
+            energyCore.scale.setScalar(0.9 + Math.sin(time*3.5)*0.2); 
+
+            scanRings.forEach((r,i)=>{ 
+                r.rotation.z += delta*(0.4+i*0.1); 
+                r.position.y += delta*2.5; 
+                if(r.position.y > 46) r.position.y = 18; 
+            }); 
+
+            const s = snowSystem.geometry.attributes.position.array; 
+            for(let i=1; i<s.length; i+=3){ 
+                s[i]-=delta*18; 
+                if(s[i] < -20) s[i] = 130; 
+            } 
+            snowSystem.geometry.attributes.position.needsUpdate = true; 
+
+            const ap = ambientParticles.geometry.attributes.position.array; 
+            for(let i=1; i<ap.length; i+=3){ 
+                ap[i]+=delta*3; 
+                if(ap[i] > 130) ap[i] = 0; 
+            } 
+            ambientParticles.geometry.attributes.position.needsUpdate = true; 
+
+            composer.render(); 
+        } 
+
+        function onResize(){ 
+            camera.aspect = window.innerWidth/window.innerHeight; 
+            updateCamera(); 
+            camera.updateProjectionMatrix(); 
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+            composer.setSize(window.innerWidth, window.innerHeight); 
+        } 
+    </script> 
+</body> 
 </html>
