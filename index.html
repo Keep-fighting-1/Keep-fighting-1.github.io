@@ -42,12 +42,41 @@
             white-space: nowrap; 
         } 
         #loading-indicator.show { opacity: 1; } 
+        /* 强制播放提示层 */
+        #force-play-layer {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(0,0,0,0.8);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: #00f2ff; font-size: 18px;
+        }
+        #force-play-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            border: 2px solid #00f2ff;
+            border-radius: 30px;
+            background: transparent;
+            color: #00f2ff;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0,242,255,0.5);
+            transition: all 0.3s ease;
+        }
+        #force-play-btn:hover {
+            background: #00f2ff;
+            color: #000;
+        }
     </style> 
 </head> 
 <body> 
+    <!-- 强制手动播放提示层（优先显示） -->
+    <div id="force-play-layer">
+        点击下方按钮播放 Jingle Bells
+        <button id="force-play-btn">播放圣诞铃声</button>
+    </div>
+
     <div id="title-overlay">Merry Christmas</div> 
     <div id="music-btn"> 
-        <!-- 播放/暂停图标切换 -->
         <svg class="icon-music play-icon" viewBox="0 0 24 24" style="display:block">
             <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
         </svg>
@@ -56,12 +85,17 @@
         </svg>
     </div> 
     <div id="loading-indicator">加载音乐中...</div> 
-    <!-- 稳定的Jingle Bells音频源（无版权/跨域限制） -->
-    <audio id="bg-audio" loop preload="auto" volume="0.7">
-        <source src="https://cdn.pixabay.com/download/audio/2022/01/17/audio_1f208a8984.mp3?filename=jingle-bells-141022.mp3" type="audio/mpeg">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-jingle-bells-small-jingle-797.mp3" type="audio/mpeg">
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+
+    <!-- 终极稳定音频源（覆盖全球/无跨域） -->
+    <audio id="bg-audio" loop preload="none" volume="0.7">
+        <!-- 源1：JSdelivr CDN托管的Jingle Bells（最稳定） -->
+        <source src="https://cdn.jsdelivr.net/gh/justinmeister/jingle-bells/jingle-bells.mp3" type="audio/mpeg">
+        <!-- 源2：GitHub Raw（备用） -->
+        <source src="https://raw.githubusercontent.com/justinmeister/jingle-bells/master/jingle-bells.mp3" type="audio/mpeg">
+        <!-- 源3：公共CDN备用 -->
+        <source src="https://audio-ssl.itunes.apple.com/apple-assets-us-std-000001/AudioPreview125/v4/6b/86/97/6b8697f9-880a-422c-9c90-29e1996a2f92/mzaf_10776335504501019105.plus.aac.p.m4a" type="audio/mp4">
     </audio> 
+
     <div id="canvas-container"></div> 
 
     <script type="importmap"> 
@@ -83,116 +117,81 @@
         const particleCount = 22000; 
         const loader = new THREE.TextureLoader(); 
 
-        /* --- 优化音乐播放逻辑 --- */
+        /* --- 核心修复：强制手动触发播放 --- */
         const musicBtn = document.getElementById('music-btn');
         const audio = document.getElementById('bg-audio');
         const loadingIndicator = document.getElementById('loading-indicator');
         const playIcon = document.querySelector('.play-icon');
         const pauseIcon = document.querySelector('.pause-icon');
+        const forcePlayLayer = document.getElementById('force-play-layer');
+        const forcePlayBtn = document.getElementById('force-play-btn');
         
         let isPlaying = false;
-        let isAudioLoaded = false;
-        let loadAttempts = 0;
-        const maxLoadAttempts = 2; // 最大加载重试次数
 
-        // 音频状态提示更新
-        const updateLoadingTip = (text) => {
-            loadingIndicator.textContent = text;
-            loadingIndicator.classList.add('show');
-        };
-
-        // 音频加载成功处理
-        const onAudioLoaded = () => {
-            clearTimeout(loadTimeout);
-            isAudioLoaded = true;
-            loadingIndicator.classList.remove('show');
-            updateLoadingTip('点击播放音乐');
-        };
-
-        // 音频加载失败处理
-        const onAudioError = (e) => {
-            clearTimeout(loadTimeout);
-            loadAttempts++;
-            console.log(`音频加载失败（第${loadAttempts}次）:`, e);
-            
-            if (loadAttempts < maxLoadAttempts) {
-                updateLoadingTip('重试加载音乐...');
-                audio.load(); // 重试加载
-            } else {
-                isAudioLoaded = true;
-                updateLoadingTip('加载失败，点击重试');
+        // 第一步：强制用户点击按钮才加载+播放（绕过自动播放限制）
+        forcePlayBtn.addEventListener('click', async () => {
+            try {
+                // 隐藏强制提示层
+                forcePlayLayer.style.display = 'none';
+                // 显示加载提示
+                updateLoadingTip('加载Jingle Bells...');
+                
+                // 手动加载音频
+                await audio.load();
+                // 强制播放（用户交互后可播放）
+                await audio.play();
+                
+                isPlaying = true;
+                musicBtn.classList.add('playing');
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                loadingIndicator.classList.remove('show');
+            } catch (err) {
+                console.error('播放失败:', err);
+                updateLoadingTip('播放失败，请点击按钮重试');
+                // 重新显示强制层
+                forcePlayLayer.style.display = 'flex';
             }
-        };
+        });
 
-        // 5秒加载超时处理
-        const loadTimeout = setTimeout(() => {
-            if (!isAudioLoaded) {
-                onAudioError(new Error('加载超时'));
-            }
-        }, 5000);
-
-        // 监听音频加载事件
-        audio.addEventListener('loadedmetadata', onAudioLoaded);
-        audio.addEventListener('canplaythrough', onAudioLoaded); // 完全加载可播放
-        audio.addEventListener('error', onAudioError);
-        audio.addEventListener('abort', onAudioError);
-
-        // 播放/暂停切换逻辑
-        const toggleAudio = () => {
+        // 第二步：播放/暂停切换（按钮）
+        musicBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
             if (isPlaying) {
-                // 暂停
                 audio.pause();
                 isPlaying = false;
                 musicBtn.classList.remove('playing');
                 playIcon.style.display = 'block';
                 pauseIcon.style.display = 'none';
-                updateLoadingTip('点击播放音乐');
+                updateLoadingTip('点击播放Jingle Bells');
             } else {
-                // 播放
-                if (!isAudioLoaded && loadAttempts >= maxLoadAttempts) {
-                    // 加载失败后重试加载
-                    loadAttempts = 0;
-                    updateLoadingTip('重新加载音乐...');
-                    audio.load();
-                }
-
-                updateLoadingTip('播放中...');
-                audio.play().then(() => {
+                try {
+                    updateLoadingTip('播放Jingle Bells...');
+                    await audio.play();
                     isPlaying = true;
                     musicBtn.classList.add('playing');
                     playIcon.style.display = 'none';
                     pauseIcon.style.display = 'block';
                     loadingIndicator.classList.remove('show');
-                }).catch(err => {
-                    console.log('播放失败:', err);
-                    // 处理浏览器自动播放限制
-                    updateLoadingTip('需要手动点击播放');
-                });
+                } catch (err) {
+                    updateLoadingTip('需要重新点击播放');
+                    forcePlayLayer.style.display = 'flex'; // 回退到强制层
+                }
             }
-        };
-
-        // 1. 微信环境自动尝试播放
-        document.addEventListener("WeixinJSBridgeReady", () => {
-            if (!isPlaying && isAudioLoaded) {
-                toggleAudio();
-            }
-        }, false);
-
-        // 2. 点击屏幕任意位置首次触发播放
-        window.addEventListener('click', () => {
-            if (!isPlaying && !loadingIndicator.classList.contains('show')) {
-                toggleAudio();
-            }
-        }, { once: true });
-
-        // 3. 音乐按钮点击（阻止冒泡，避免重复触发屏幕点击）
-        musicBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleAudio();
         });
 
-        // 初始提示
-        updateLoadingTip('加载音乐中...');
+        // 辅助：更新提示
+        function updateLoadingTip(text) {
+            loadingIndicator.textContent = text;
+            loadingIndicator.classList.add('show');
+        }
+
+        // 音频错误处理
+        audio.addEventListener('error', (err) => {
+            console.error('音频加载错误:', err);
+            updateLoadingTip('音频源失效，请刷新重试');
+            forcePlayLayer.style.display = 'flex';
+        });
 
         /* --- Three.js 3D场景代码（无修改） --- */
         init();
