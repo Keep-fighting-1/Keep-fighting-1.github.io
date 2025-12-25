@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Tree - Visual Only</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Christmas Tree - Mobile Optimized</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Arial', sans-serif; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Arial', sans-serif; touch-action: none; }
         #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         #title-overlay {
-            position: absolute; top: 30px; width: 100%; text-align: center;
-            color: #FFD700; font-family: 'Brush Script MT', cursive; font-size: 4.5rem;
-            text-shadow: 0 0 15px #FFD700, 0 0 30px #ff8c00; z-index: 10; pointer-events: none;
+            position: absolute; 
+            top: 10%; /* 相对高度，适配手机顶部 */
+            width: 100%; 
+            text-align: center;
+            color: #FFD700; 
+            font-family: 'Brush Script MT', cursive; 
+            /* 手机端 10vw，电脑端最大 4.5rem */
+            font-size: clamp(2.5rem, 10vw, 4.5rem); 
+            text-shadow: 0 0 15px #FFD700, 0 0 30px #ff8c00; 
+            z-index: 10; 
+            pointer-events: none;
+            padding: 0 10px;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -38,7 +48,7 @@
         let treeMainContainer = new THREE.Group(); 
         let ornamentsGroup = new THREE.Group();
 
-        const particleCount = 18000;
+        const particleCount = 15000; // 适配手机性能，略微减少粒子
         const textureLoader = new THREE.TextureLoader();
 
         init();
@@ -46,16 +56,14 @@
         function init() {
             clock = new THREE.Clock();
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.012);
+            scene.fog = new THREE.FogExp2(0x000000, 0.015);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            // 调整相机位置，使视角更贴近文字下方的树
-            camera.position.set(0, 50, 60); 
-            camera.lookAt(0, 48, 0); 
+            updateCameraPosition(); // 初始化相机位置
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比以保帧率
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
             setupPostProcessing();
@@ -64,19 +72,37 @@
             createParticleTree();
             createScatteredDecorations();
 
-            // 将圣诞树容器定位在 y=40，使其紧贴上方文字
+            // 适配手机：树的位置稍微调低一点，给文字留出空间
             treeMainContainer.add(treePoints);
             treeMainContainer.add(ornamentsGroup);
-            treeMainContainer.position.set(0, 40, 0); 
+            treeMainContainer.position.set(0, 32, 0); 
             scene.add(treeMainContainer);
 
             window.addEventListener('resize', onWindowResize);
             animate();
         }
 
+        // 核心适配函数：根据屏幕比例调整相机
+        function updateCameraPosition() {
+            const aspect = window.innerWidth / window.innerHeight;
+            if (aspect < 1) {
+                // 手机竖屏：相机拉远，视角调高
+                camera.position.set(0, 55, 80); 
+                camera.lookAt(0, 45, 0);
+                camera.fov = 80;
+            } else {
+                // 电脑横屏
+                camera.position.set(0, 50, 60); 
+                camera.lookAt(0, 48, 0);
+                camera.fov = 75;
+            }
+            camera.updateProjectionMatrix();
+        }
+
         function setupPostProcessing() {
             const renderScene = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.8, 0.1);
+            // 降低一点强度，防止手机端过曝
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.2, 0.8, 0.15);
             composer = new EffectComposer(renderer);
             composer.addPass(renderScene);
             composer.addPass(bloomPass);
@@ -91,8 +117,8 @@
 
             for (let i = 0; i < particleCount; i++) {
                 const angle = i * 0.12;
-                const radius = i * 0.007 * Math.random();
-                const height = i * 0.018;
+                const radius = i * 0.008 * Math.random();
+                const height = i * 0.022;
                 
                 positions[i*3] = -radius * Math.cos(angle);
                 positions[i*3+1] = 35 - height; 
@@ -101,7 +127,7 @@
                 const choice = Math.random();
                 let col = choice < 0.6 ? colorPalette[2] : (choice < 0.85 ? colorPalette[0] : colorPalette[1]);
                 colors[i*3] = col.r; colors[i*3+1] = col.g; colors[i*3+2] = col.b;
-                sizes[i] = Math.random() * 0.6 + 0.3;
+                sizes[i] = Math.random() * 0.5 + 0.3;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -116,7 +142,7 @@
                     void main() { 
                         vColor = color; 
                         vec4 mvPosition = modelViewMatrix * vec4(position,1.0); 
-                        gl_PointSize = size * (450.0 / -mvPosition.z); 
+                        gl_PointSize = size * (500.0 / -mvPosition.z); 
                         gl_Position = projectionMatrix * mvPosition; 
                     }`,
                 fragmentShader: `
@@ -136,21 +162,20 @@
 
         function createScatteredDecorations() {
             const starTex = textureLoader.load('https://threejs.org/examples/textures/sprites/snowflake2.png');
-            const sparkTex = textureLoader.load('https://threejs.org/examples/textures/sprites/spark1.png');
             const ornamentColors = [0xff4444, 0xffd700, 0xffffff, 0x00ffcc];
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 100; i++) {
                 const mat = new THREE.SpriteMaterial({
-                    map: Math.random() > 0.5 ? starTex : sparkTex,
+                    map: starTex,
                     color: ornamentColors[Math.floor(Math.random() * ornamentColors.length)],
-                    blending: THREE.AdditiveBlending, transparent: true, opacity: 0.95
+                    blending: THREE.AdditiveBlending, transparent: true, opacity: 0.9
                 });
                 const sprite = new THREE.Sprite(mat);
                 const t = Math.random();
                 const height = 35 - (t * 32);
                 const angle = Math.random() * Math.PI * 2;
-                const radius = Math.max(1, t * 11 + (Math.random() - 0.5) * 3);
+                const radius = Math.max(1, t * 11 + (Math.random() - 0.5) * 2);
                 sprite.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
-                const s = Math.random() * 1.5 + 0.5;
+                const s = Math.random() * 1.2 + 0.5;
                 sprite.scale.set(s, s, s);
                 ornamentsGroup.add(sprite);
             }
@@ -159,45 +184,42 @@
         function createStarryBackground() {
             const starsGeometry = new THREE.BufferGeometry();
             const starsVertices = [];
-            for (let i = 0; i < 6000; i++) {
-                starsVertices.push(THREE.MathUtils.randFloatSpread(400), THREE.MathUtils.randFloatSpread(400), THREE.MathUtils.randFloatSpread(400));
+            for (let i = 0; i < 4000; i++) {
+                starsVertices.push(THREE.MathUtils.randFloatSpread(500), THREE.MathUtils.randFloatSpread(500), THREE.MathUtils.randFloatSpread(500));
             }
             starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-            scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0x888888, size: 0.2 })));
+            scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0x888888, size: 0.3 })));
         }
 
         function createSnow() {
             const snowGeometry = new THREE.BufferGeometry();
             const snowVertices = [];
-            for (let i = 0; i < 2500; i++) {
+            for (let i = 0; i < 1500; i++) {
                 snowVertices.push(THREE.MathUtils.randFloatSpread(200), Math.random() * 120, THREE.MathUtils.randFloatSpread(200));
             }
             snowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(snowVertices, 3));
-            snowSystem = new THREE.Points(snowGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4, transparent: true, opacity: 0.8 }));
+            snowSystem = new THREE.Points(snowGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, transparent: true, opacity: 0.8 }));
             scene.add(snowSystem);
         }
 
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-
-            // 树持续自转
-            treeMainContainer.rotation.y += delta * 0.3;
-
-            // 雪花飘落
+            treeMainContainer.rotation.y += delta * 0.4;
             const snowPos = snowSystem.geometry.attributes.position.array;
             for (let i = 1; i < snowPos.length; i += 3) {
-                snowPos[i] -= delta * 15; 
+                snowPos[i] -= delta * 12; 
                 if (snowPos[i] < -20) snowPos[i] = 100;
             }
             snowSystem.geometry.attributes.position.needsUpdate = true;
-
             composer.render();
         }
 
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            updateCameraPosition();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         }
     </script>
 </body>
