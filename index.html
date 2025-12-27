@@ -1,109 +1,56 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算机组成原理与体系结构 - 全题库精解系统</title>
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --success: #1e8e3e;
-            --error: #d93025;
-            --bg: #f8f9fa;
-            --card-bg: #ffffff;
-        }
-        body { margin: 0; padding: 0; background: var(--bg); font-family: "Microsoft YaHei", sans-serif; color: #333; }
-        
-        /* 顶部导航 */
-        .navbar {
-            position: sticky; top: 0; z-index: 100;
-            background: #fff; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .nav-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .search-box {
-            padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
-            width: 100%; max-width: 400px; font-size: 14px;
-        }
-        .stats { font-weight: bold; color: var(--primary); font-size: 14px; }
-
-        /* 题目容器 */
-        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
-        
-        /* 题目卡片 */
-        .q-card {
-            background: var(--card-bg); border-radius: 8px; padding: 20px;
-            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid transparent; transition: all 0.2s;
-        }
-        .q-meta { font-size: 12px; color: #666; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .tag { padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
-        .tag-tf { background-color: #f6bf26; } /* 判断题 */
-        .tag-mc { background-color: #4285f4; } /* 单选题 */
-        
-        .q-content { font-size: 16px; font-weight: 600; line-height: 1.5; margin-bottom: 15px; }
-        
-        /* 选项按钮 */
-        .options { display: grid; gap: 10px; }
-        .opt-btn {
-            text-align: left; padding: 12px 15px; border: 1px solid #ddd;
-            background: #fff; border-radius: 6px; cursor: pointer;
-            transition: 0.2s; font-size: 14px; position: relative;
-        }
-        .opt-btn:hover { background: #f1f3f4; }
-        
-        /* 状态样式 */
-        .correct-btn { background: #e6f4ea !important; border-color: var(--success) !important; color: var(--success); font-weight: bold; }
-        .wrong-btn { background: #fce8e6 !important; border-color: var(--error) !important; color: var(--error); }
-        .q-card.solved-right { border-left-color: var(--success); }
-        .q-card.solved-wrong { border-left-color: var(--error); }
-
-        /* 解析区域 */
-        .analysis {
-            margin-top: 15px; padding: 15px; background: #f8f9fa;
-            border-radius: 6px; display: none; border: 1px dashed #ccc;
-        }
-        .analysis strong { color: var(--primary); }
-
-        /* 底部 */
-        .footer { text-align: center; padding: 30px; color: #888; font-size: 12px; }
-
-        @media (max-width: 600px) {
-            .nav-row { flex-direction: column; align-items: stretch; gap: 10px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>计算机组成原理题库 – 导出错题Word</title>
+<script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
+<style>
+:root{--primary:#1a73e8;--success:#1e8e3e;--error:#d93025;--bg:#f8f9fa;--card-bg:#ffffff;}
+body{margin:0;padding:0;background:var(--bg);font-family:"Microsoft YaHei",sans-serif;color:#333;}
+.navbar{position:sticky;top:0;z-index:100;background:#fff;padding:15px;box-shadow:0 2px 10px rgba(0,0,0,.1);}
+.navbar h2{margin:0 0 10px;font-size:18px;display:inline-block;margin-right:20px;}
+.search-box{padding:8px 12px;border:1px solid #ddd;border-radius:6px;width:100%;max-width:320px;font-size:14px;}
+.stats{font-weight:bold;color:var(--primary);font-size:14px;margin-left:10px;}
+.container{max-width:900px;margin:20px auto;padding:0 15px;}
+.q-card{background:var(--card-bg);border-radius:8px;padding:18px;margin-bottom:15px;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.q-meta{font-size:12px;color:#666;margin-bottom:6px;display:flex;justify-content:space-between;}
+.tag{padding:2px 6px;border-radius:4px;color:#fff;font-weight:bold;}
+.tag-tf{background:#f6bf26}.tag-mc{background:#4285f4}
+.q-content{font-size:15px;font-weight:600;margin-bottom:10px;}
+.options{display:grid;gap:8px;}
+.opt-btn{text-align:left;padding:8px 12px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:14px;}
+.opt-btn:hover{background:#f1f3f4}
+.correct-btn{background:#e6f4ea!important;border-color:var(--success)!important;color:var(--success);font-weight:bold}
+.wrong-btn{background:#fce8e6!important;border-color:var(--error)!important;color:var(--error)}
+.q-card.solved-right{border-left:4px solid var(--success)}.q-card.solved-wrong{border-left:4px solid var(--error)}
+.q-card.highlight{box-shadow:0 0 10px rgba(26,115,232,0.25);transform:translateY(-2px);transition:all .18s}
+.analysis{margin-top:10px;padding:10px;background:#f8f9fa;border-radius:4px;display:none;border:1px dashed #ccc;font-size:13px;}
+.analysis strong{color:var(--primary)}
+.footer{text-align:center;padding:20px;color:#888;font-size:12px}
+</style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-row">
-        <h2 style="margin:0; font-size:18px;">计算机组成原理全题库 (约400题)</h2>
-        <div class="stats">已答: <span id="done-cnt">0</span> | 正确率: <span id="acc-rate">0%</span></div>
-    </div>
-    <div class="nav-row">
-        <input type="text" id="search" class="search-box" placeholder="输入关键词搜索题目（如：DMA、补码）...">
-        <div style="display:flex; gap:8px; align-items:center;">
-            <button id="export-btn" class="search-box" style="max-width:130px;">导出错题</button>
-            <div style="font-size:12px; color:#666;">显示: <span id="visible-cnt">0</span> 题</div>
-        </div>
-    </div>
+  <h2>计算机组成原理全题库 (约400题)</h2>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <input id="search" class="search-box" placeholder="输入关键词搜索题目（如：DMA、补码）...">
+    <select id="topic-select" class="search-box" style="max-width:220px;">
+      <option value="">全部知识点</option>
+    </select>
+    <span class="stats">已答: <span id="done-cnt">0</span> | 正确率: <span id="acc-rate">0%</span></span>
+  </div>
 </div>
 
-<div class="container" id="q-list">
-    </div>
-
-<div class="footer">
-    已加载全部题目数据 | 祝考试顺利
+<div class="container" id="q-list"></div>
+<div class="footer">已加载全部题目数据 | 祝期末考试顺利
+      ©️ Serendipity-Keepfighting
+      2025年12月27日  河南财经政法大学
 </div>
+</div>
+
 <script>
-/* 进页面先清空历史答题状态 */
-localStorage.removeItem('practice_state_v1');
-</script>
-<script>
-/**
- * 完整题库数据
- * 格式: [类型(0判断/1单选), 题目内容, 选项数组(判断题为null), 正确答案索引(判断题0=F,1=T), 解析/来源]
- */
+/* ======================= 题库数据（示例仅前10题，其余请自行追加） ======================= */
 const db = [
     // --- 来源：计算机组成原理判断题100道 (带详细解析) ---
     [0, "一般情况下一段程序的执行过程是由硬盘访问时间、内存访问时间、I/O操作时间、操作系统开销时间和CPU执行时间等几部分构成。", null, 0, "硬盘访问时间属于I/O时间子集，不能并列；一般不单独拆分操作系统开销时间，核心构成是CPU执行时间和I/O时间。"],
@@ -307,6 +254,7 @@ const db = [
     [1, "硬布线控制器的特点是", ["控制逻辑灵活","设计复杂","易于修改","适合复杂指令系统"], 1, "答案：B"],
     
     // --- 来源：题库解析 (混杂题) ---
+
     [0, "移码可以用于定点整数和小数的表示。", null, 0, "移码主要用于浮点数的阶码表示。"],
     [0, "定点数表示法约定计算机中所有数据的小数点不固定。", null, 0, "定点数的小数点是固定的。"],
     [0, "设定点小数 x=x0x1...x5，其中 x0 为最高有效位。", null, 0, "x0通常是符号位。"],
@@ -477,294 +425,277 @@ const db = [
     [1, "已知海明码码字为01101111，请问发送的有效信息位（ ）。", ["0110111","0110110","0000","1111"], 3, "答案：D"]
 ];
 
-const list = document.getElementById('q-list');
-const searchInput = document.getElementById('search');
-const exportTxtBtn = document.getElementById('export-txt-btn');
-const exportWordBtn = document.getElementById('export-word-btn');
-
-// 持久化键与状态
-const LS_KEY = 'practice_state_v1';
-let answered = {}; // { index: {selected: i, correct: bool} }
-let wrongSet = new Set();
-
-function loadState() {
-    try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return;
-        const obj = JSON.parse(raw);
-        answered = obj.answered || {};
-        wrongSet = new Set(obj.wrong || []);
-    } catch (e) {
-        console.warn('loadState failed, clearing corrupt state', e);
-        localStorage.removeItem(LS_KEY);
-        answered = {};
-        wrongSet = new Set();
-    }
+/* ======================= 状态持久化 ======================= */
+const LS_KEY='practice_state_v1';
+// 每次打开页面时清空历史答题记录（如需保留，请删除下一行）
+localStorage.removeItem(LS_KEY);
+let answered={},wrongSet=new Set();
+function loadState(){
+  try{const r=localStorage.getItem(LS_KEY);if(r){const o=JSON.parse(r);answered=o.answered||{};wrongSet=new Set(o.wrong||[]);}}
+  catch{localStorage.removeItem(LS_KEY);answered={};wrongSet=new Set();}
 }
-function saveState() {
-    try {
-        const obj = { answered: answered, wrong: Array.from(wrongSet) };
-        localStorage.setItem(LS_KEY, JSON.stringify(obj));
-    } catch (e) {
-        console.warn('saveState failed', e);
-    }
+function saveState(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify({answered,wrong:Array.from(wrongSet)}));}
+  catch{console.warn('saveState failed');}
 }
-
 loadState();
 
-// 初始化渲染
-function render(filterText = "") {
-    list.innerHTML = "";
-    let correctCount = 0;
-    let doneCount = 0;
-    let visibleCount = 0;
-    
-    db.forEach((item, index) => {
-        const [type, question, options, answerIdx, analysis] = item;
-        
-        // 搜索过滤
-        if (filterText && !question.includes(filterText) && (!analysis || !analysis.includes(filterText))) {
-            return;
-        }
-        visibleCount++;
+// 知识点（Topic）筛选
+let currentTopic = '';
+// 分类器：把题目归为指定的九个知识点之一
+function classifyQuestion(item){
+  const [type,q,opts,ansIdx,analysis] = item;
+  const text = ((q||'') + ' ' + (analysis||'') + ' ' + (Array.isArray(opts) ? opts.join(' ') : (opts||''))).toLowerCase();
+  // 区分顺序：更具体的优先
+  const rules = [
+    ['指令流水线', /流水线|pipeline|阻塞/],
+    ['输入/输出系统', /i\/o|io|dma|中断|设备|接口|打印机|键盘|输入设备|输出设备/],
+    ['总线系统', /总线|pci|usb|总线仲裁|带宽|地址总线|数据总线|控制总线/],
+    ['中央处理器', /cpu|中央处理器|控制器|寄存器组|寄存器/],
+    ['指令系统', /指令系统|操作码|地址码|指令格式|指令集|取指|译码|执行/],
+    ['存储系统', /存储|dram|sram|rom|flash|主存|cache|存储层次|缓冲/],
+    ['运算方法与运算器', /运算器|算术|逻辑运算|移位|乘法器|加法|booth|阵列乘法器/],
+    ['数据信息表示', /补码|原码|反码|浮点|定点|bcd|ascii|编码|表示/],
+    ['计算机系统概述', /计算机系统|计算机组成|存储程序|计算机问世|主机|外部设备|计算机的主要组成/]
+  ];
+  for(const [label,regex] of rules){ if(regex.test(text)) return label; }
+  return '未分类';
+}
+function getTopicsSet(){
+  const s = new Set();
+  db.forEach(it=>{
+    // 如果题目已明确标注第6字段，保留；否则使用分类器
+    const t = it[5];
+    if(t){ if(Array.isArray(t)) t.forEach(x=>s.add(String(x))); else s.add(String(t)); }
+    else s.add(classifyQuestion(it));
+  });
+  return s;
+}
+function populateTopicSelect(){
+  const sel = document.getElementById('topic-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">全部知识点</option>';
+  Array.from(getTopicsSet()).sort().forEach(t=>{
+    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = currentTopic || '';
+}
+const topicSelect = document.getElementById('topic-select');
+if(topicSelect){
+  topicSelect.addEventListener('change', e=>{ currentTopic = e.target.value; render(document.getElementById('search').value.trim()); });
+  populateTopicSelect();
 
-        const card = document.createElement('div');
-        card.className = "q-card";
-        card.id = `q-${index}`;
-        
-        // 头部信息
-        const meta = document.createElement('div');
-        meta.className = "q-meta";
-        meta.innerHTML = `
-            <span>第 ${index + 1} 题</span>
-            <span class="tag ${type === 0 ? 'tag-tf' : 'tag-mc'}">${type === 0 ? '判断题' : '单选题'}</span>
-        `;
-        
-        // 题目内容
-        const qContent = document.createElement('div');
-        qContent.className = "q-content";
-        qContent.innerText = question;
-        
-        // 选项区域
-        const optContainer = document.createElement('div');
-        optContainer.className = "options";
-        
-        const opts = type === 0 ? ["正确", "错误"] : (Array.isArray(options) ? options : []);
-        
-        if (!opts || opts.length === 0) {
-            const noOpt = document.createElement('div');
-            noOpt.style.color = '#666';
-            noOpt.style.fontStyle = 'italic';
-            noOpt.innerText = '（该题暂无选项）';
-            optContainer.appendChild(noOpt);
-        } else {
-            opts.forEach((optText, i) => {
-                const btn = document.createElement('button');
-                btn.className = "opt-btn";
-                // 选项前缀 A,B,C,D 或 T/F
-                const prefix = type === 0 ? (i===0?"√ ":"× ") : String.fromCharCode(65+i) + ". ";
-                btn.innerText = prefix + optText;
-
-                // 如果已答，则恢复显示状态
-                const answeredState = answered[index];
-                if (answeredState) {
-                    btn.disabled = true;
-                    const correctBtnIdx = type === 0 ? (answerIdx === 1 ? 0 : 1) : answerIdx;
-                    if (i === correctBtnIdx) btn.classList.add('correct-btn');
-                    if (i === answeredState.selected && !answeredState.correct) btn.classList.add('wrong-btn');
-                } else {
-                    btn.addEventListener('click', function() {
-                        // 计算是否正确
-                        let isRight = false;
-                        if(type === 0) {
-                            const val = i === 0 ? 1 : 0; // 按钮0表示T(1)，按钮1表示F(0)
-                            isRight = (val === answerIdx);
-                        } else {
-                            isRight = (i === answerIdx);
-                        }
-
-                        // 保存状态
-                        answered[index] = { selected: i, correct: isRight };
-                        if (!isRight) {
-                            wrongSet.add(index);
-                        } else {
-                            wrongSet.delete(index);
-                        }
-                        saveState();
-
-                        // 更新界面：禁用所有选项并高亮
-                        Array.from(optContainer.children).forEach((cbtn, ci) => {
-                            cbtn.disabled = true;
-                            const correctBtnIdx = type === 0 ? (answerIdx === 1 ? 0 : 1) : answerIdx;
-                            if (ci === correctBtnIdx) cbtn.classList.add('correct-btn');
-                            if (ci === i && !isRight) cbtn.classList.add('wrong-btn');
-                        });
-
-                        if (isRight) {
-                            card.classList.add('solved-right');
-                        } else {
-                            card.classList.add('solved-wrong');
-                        }
-
-                        // 显示解析
-                        card.querySelector('.analysis').style.display = 'block';
-
-                        // 更新统计
-                        refreshStats();
-                    });
-                }
-
-                optContainer.appendChild(btn);
-            });
-        }
-
-        // 解析区域
-        const showAnalysis = !!answered[index];
-        const anaDiv = document.createElement('div');
-        anaDiv.className = "analysis";
-        const correctLabel = type === 0 ? (answerIdx===1?"正确 (√)":"错误 (×)") : String.fromCharCode(65+answerIdx);
-        anaDiv.innerHTML = `<strong>正确答案：${correctLabel}</strong><br><br>解析：${analysis || "暂无详细解析"}`;
-        if (showAnalysis) anaDiv.style.display = 'block';
-        if (answered[index]) {
-            if (answered[index].correct) card.classList.add('solved-right'); else card.classList.add('solved-wrong');
-        }
-
-        card.appendChild(meta);
-        card.appendChild(qContent);
-        card.appendChild(optContainer);
-        card.appendChild(anaDiv);
-        list.appendChild(card);
+  // ===== 知识点统计面板 & 按钮 =====
+  function computeTopicCounts(){
+    const counts = {};
+    db.forEach((it, idx)=>{
+      const t = it[5] ? (Array.isArray(it[5])?it[5][0]:it[5]) : classifyQuestion(it);
+      counts[t] = (counts[t]||0) + 1;
     });
-    
-    document.getElementById('visible-cnt').innerText = visibleCount;
-}
-
-// 统计更新
-let totalAnswered = 0;
-let totalCorrect = 0;
-function refreshStats() {
-    const ids = Object.keys(answered);
-    totalAnswered = ids.length;
-    totalCorrect = ids.reduce((acc, id) => acc + ((answered[id] && answered[id].correct) ? 1 : 0), 0);
-    document.getElementById('done-cnt').innerText = totalAnswered;
-    document.getElementById('acc-rate').innerText = totalAnswered ? Math.round((totalCorrect/totalAnswered)*100) + "%" : "0%";
-}
-
-// 搜索功能
-function filterQuestions() {
-    const txt = searchInput.value.trim();
-    render(txt);
-}
-
-// 导出错题
-function exportWrong() {
-    const arr = Array.from(wrongSet).sort((a,b)=>a-b).map(i=> ({ index: i, question: db[i] }));
-    if (arr.length === 0) { alert('当前没有错题'); return; }
-    const blob = new Blob([JSON.stringify(arr, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'wrong-questions.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-}
-
-// 绑定事件
-searchInput.addEventListener('input', filterQuestions);
-if (exportTxtBtn) exportTxtBtn.addEventListener('click', exportWrongAsTxt);
-if (exportWordBtn) exportWordBtn.addEventListener('click', exportWrongAsWord);
-
-// 启动
-render();
-refreshStats();
-
-</script>
-
-<!-- 2. 新增一个按钮 -->
-<button id="export-word" style="margin:15px 0;padding:6px 12px;">导出 Word 题库</button>
-
-<script>
-/* 3. 导出 Word 主函数 */
-function exportWord() {
-    let html = `
-    <meta charset="UTF-8">
-    <style>
-        table{border-collapse:collapse;width:100%;font-size:14px;}
-        th,td{border:1px solid #666;padding:6px;}
-        th{background:#eee;}
-        .tf{color:#e67e22;font-weight:bold;}
-        .mc{color:#3498db;font-weight:bold;}
-    </style>
-    <h2>计算机组成原理题库（共 ${db.length} 题）</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>序号</th><th>题型</th><th>题目</th><th>选项 / 答案</th><th>解析</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-    db.forEach((item, idx) => {
-        const [type, q, opts, ansIdx, analysis] = item;
-        const typeTxt = type === 0 ? '判断' : '单选';
-        const className = type === 0 ? 'tf' : 'mc';
-
-        const optionsArr = Array.isArray(opts) ? opts : [];
-        let optionHtml = '';
-        if (type === 0) {
-            optionHtml = `正确 / 错误　【答案：${ansIdx ? '正确' : '错误'}】`;
-        } else {
-            if (optionsArr.length === 0) {
-                optionHtml = '（无选项）';
-            } else {
-                optionHtml = optionsArr.map((o, i) => `${String.fromCharCode(65 + i)}. ${o}`).join('<br>') +
-                            `<br>【答案：${String.fromCharCode(65 + ansIdx)}】`;
-            }
+    return counts;
+  }
+  function updateTopicStatsPanel(){
+    const panel = document.getElementById('topic-stats'); if(!panel) return;
+    const counts = computeTopicCounts();
+    const items = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    panel.innerHTML = '<strong>知识点统计</strong><div style="margin-top:6px;font-size:13px;color:#444"></div>';
+    const list = document.createElement('div'); list.style.display='flex'; list.style.flexDirection='column'; list.style.gap='6px'; list.style.marginTop='8px';
+    items.forEach(([t,c])=>{
+      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center';
+      const left = document.createElement('span'); left.textContent = `${t}`; left.style.cursor='pointer'; left.style.color='#1a73e8'; left.title='点击筛选该知识点';
+      left.onclick = ()=>{
+        currentTopic = t; document.getElementById('topic-select').value = t; render(document.getElementById('search').value.trim());
+        // 定位到该知识点的第一道题并高亮
+        let firstIdx = -1;
+        for(let idx=0; idx<db.length; idx++){
+          const it = db[idx];
+          const tt = it[5] ? (Array.isArray(it[5])?it[5][0]:it[5]) : classifyQuestion(it);
+          if(tt === t){ firstIdx = idx; break; }
         }
-
-        html += `<tr>
-                   <td>${idx + 1}</td>
-                   <td class="${className}">${typeTxt}</td>
-                   <td>${q}</td>
-                   <td>${optionHtml}</td>
-                   <td>${analysis || '—'}</td>
-                 </tr>`;
+        panel.style.display='none';
+        if(firstIdx >= 0){
+          // 等待 DOM 更新后滚动（render 已执行）
+          setTimeout(()=>{
+            const el = document.getElementById('q-'+firstIdx);
+            if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('highlight'); setTimeout(()=>el.classList.remove('highlight'),1200); }
+          }, 50);
+      } };
+      const right = document.createElement('span'); right.textContent = ` ${c}题`; right.style.color='#666';
+      row.appendChild(left); row.appendChild(right);
+      list.appendChild(row);
     });
+    panel.appendChild(list);
+  }
 
-    html += '</tbody></table>';
+  const statsBtn = document.createElement('button');
+  statsBtn.className='btn'; statsBtn.style.marginLeft='8px'; statsBtn.textContent='知识点统计';
+  const statsPanel = document.createElement('div'); statsPanel.id='topic-stats';
+  statsPanel.style.cssText = 'display:none;position:absolute;right:20px;top:60px;background:#fff;padding:10px;border:1px solid #ddd;max-height:300px;overflow:auto;z-index:200;box-shadow:0 4px 10px rgba(0,0,0,.1)';
+  document.querySelector('.navbar').appendChild(statsBtn);
+  document.querySelector('.navbar').appendChild(statsPanel);
+  statsBtn.addEventListener('click', e=>{ if(statsPanel.style.display==='none'){ updateTopicStatsPanel(); statsPanel.style.display='block'; } else statsPanel.style.display='none'; });
+  document.addEventListener('click', e=>{ if(!document.querySelector('.navbar').contains(e.target)) statsPanel.style.display='none'; });
+} 
 
-    // 生成 Blob 并下载，优先尝试生成 .docx（若 htmlDocx 可用），否则回退为 .doc（HTML）
-    try {
-        if (typeof htmlDocx !== 'undefined' && htmlDocx && htmlDocx.asBlob) {
-            const converted = htmlDocx.asBlob(html);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(converted);
-            a.download = '计算机组成原理题库.docx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-            return;
-        }
-    } catch (e) {
-        console.warn('htmlDocx failed, fallback to .doc', e);
+/* ======================= 渲染 ======================= */
+const listBox=document.getElementById('q-list');
+function render(filterText=''){
+  listBox.innerHTML='';
+  let visible=0,done=0,correct=0;
+  db.forEach((item,i)=>{
+    const [type,q,opts,ansIdx,analysis] = item;
+    if (filterText && !q.includes(filterText) && !(analysis||'').includes(filterText)) return;
+    const topicArrCheck = Array.isArray(item[5]) ? item[5] : (item[5] ? [item[5]] : [classifyQuestion(item)]);
+    if (currentTopic && !topicArrCheck.includes(currentTopic)) return;
+    visible++;
+
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `q-${i}`;
+
+    // 安全构造选项 HTML（防止 opts 为 null/undefined）
+    const safeOpts = Array.isArray(opts) ? opts : [];
+    let optsHtml = '';
+    if (type) {
+      // 单选题
+      if (safeOpts.length === 0) {
+        optsHtml = '<div style="color:#666;font-style:italic">（该题暂无选项）</div>';
+      } else {
+
+        optsHtml = safeOpts.map((t,j) => `<button class="opt-btn" data-i="${i}" data-ans="${j}">${String.fromCharCode(65+j)}. ${t}</button>`).join('');
+      }
+    } else {
+      // 判断题：按钮 data-ans 与答案索引保持一致（1 表示正确，0 表示错误）
+      optsHtml = '<button class="opt-btn" data-i="'+i+'" data-ans="1">√ 正确</button><button class="opt-btn" data-i="'+i+'" data-ans="0">× 错误</button>';
     }
 
-    // Fallback to .doc (HTML inside .doc)
-    const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = '计算机组成原理题库.doc';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
+    const topicLabel = topicArrCheck.join(', ');
+    card.innerHTML = `
+      <div class="q-meta"><span>第 ${i+1} 题</span>
+        <span class="tag ${type?'tag-mc':'tag-tf'}">${type?'单选':'判断'}</span>
+        <span class="topic" style="margin-left:8px;color:#666;font-size:12px;">${topicLabel}</span>
+      </div>
+      <div class="q-content">${q}</div>
+      <div class="options">${optsHtml}</div>
+      <div class="analysis"><strong>答案：${type?String.fromCharCode(65+ansIdx):(ansIdx?'√ 正确':'× 错误')}</strong><br><br>${analysis||'暂无解析'}</div>`;
+
+    listBox.appendChild(card);
+
+    // 恢复已答状态（小心 null 检查）
+    if (answered[i]) {
+      const sel = answered[i].selected;
+      const isCorr = !!answered[i].correct;
+      // 禁用按钮（若存在）
+      card.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+      const correctBtnVal = String(ansIdx);
+      const correctBtnEl = card.querySelector(`.opt-btn[data-ans="${correctBtnVal}"]`);
+      if (correctBtnEl) correctBtnEl.classList.add('correct-btn');
+      if (!isCorr) {
+        const selBtnEl = card.querySelector(`.opt-btn[data-ans="${String(sel)}"]`);
+        if (selBtnEl) selBtnEl.classList.add('wrong-btn');
+      }
+      card.classList.add(isCorr ? 'solved-right' : 'solved-wrong');
+      const ana = card.querySelector('.analysis'); if (ana) ana.style.display = 'block';
+    }
+  });
+  // 使用全局 answered 计算已答与正确率，保证在搜索/过滤时统计一致
+  const doneCount = Object.keys(answered).length;
+  const correctCount = Object.values(answered).reduce((s, a) => s + ((a && a.correct) ? 1 : 0), 0);
+  document.getElementById('done-cnt').textContent = doneCount;
+  document.getElementById('acc-rate').textContent = doneCount ? Math.round(correctCount / doneCount * 100) + '%' : '0%';
 }
 
-/* 4. 绑定按钮 */
-document.getElementById('export-word').addEventListener('click', exportWord);
+/* ======================= 答题交互 ======================= */
+listBox.addEventListener('click',e=>{
+  const btn=e.target.closest('.opt-btn');
+  if(!btn||btn.disabled)return;
+  const i=+btn.dataset.i,ans=+btn.dataset.ans,type=db[i][0],real=db[i][3];
+  const correct=type?ans===real:ans===real;
+  answered[i]={selected:ans,correct};
+  if(!correct)wrongSet.add(i);else wrongSet.delete(i);
+  saveState();render(document.getElementById('search').value.trim());
+});
+
+/* ======================= 搜索 ======================= */
+document.getElementById('search').addEventListener('input',e=>render(e.target.value.trim()));
+
+/* ======================= 导出错题 TXT ======================= */
+function exportWrongTxt(){
+  if(wrongSet.size===0){alert('当前没有错题');return;}
+  let lines = [];
+  Array.from(wrongSet).sort((a,b)=>a-b).forEach(idx=>{
+    const [type,q,opts,ansIdx,analysis] = db[idx];
+    const typeTxt = type ? '单选题' : '判断题';
+    const topic = db[idx] && db[idx][5] ? (Array.isArray(db[idx][5])?db[idx][5][0]:db[idx][5]) : classifyQuestion(db[idx]);
+    const optText = type
+      ? (Array.isArray(opts) ? opts.map((t,i)=>`${String.fromCharCode(65+i)}. ${t}`).join(' / ') : '') + ` | 答案：${String.fromCharCode(65+ansIdx)}`
+      : `答案：${ansIdx?'正确':'错误'}`;
+    lines.push(`序号: ${idx+1}`);
+    lines.push(`知识点: ${topic}`);
+    lines.push(`题型: ${typeTxt}`);
+    lines.push(`题目: ${q}`);
+    lines.push(`选项/答案: ${optText}`);
+    lines.push(`解析: ${analysis || '—'}`);
+    lines.push('--------------------------------------------------');
+  });
+  const blob = new Blob([lines.join('\n')], {type: 'text/plain;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '计算机组成原理错题.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+}
+
+/* ======================= 导出错题 Word ======================= */
+function exportWrongWord(){ 
+  if(wrongSet.size===0){alert('当前没有错题');return;}
+  let html=`
+  <meta charset="UTF-8"><style>table{border-collapse:collapse;width:100%;font-size:14px;}th,td{border:1px solid #333;padding:6px;}th{background:#eee;}</style>
+  <h2>计算机组成原理错题本（共 ${wrongSet.size} 题）</h2>
+  <table><thead><tr><th>序号</th><th>知识点</th><th>题型</th><th>题目</th><th>选项/答案</th><th>解析</th></tr></thead><tbody>`;
+  Array.from(wrongSet).sort((a,b)=>a-b).forEach(idx=>{
+    const[type,q,opts,ansIdx,analysis]=db[idx];
+    const topic = db[idx] && db[idx][5] ? (Array.isArray(db[idx][5])?db[idx][5][0]:db[idx][5]) : classifyQuestion(db[idx]);
+    const typeTxt = type ? '单选题' : '判断题';
+    const optHtml=type
+      ? (Array.isArray(opts) ? opts.map((t,i)=>`${String.fromCharCode(65+i)}. ${t}`).join('<br>') : '—') + `<br><b>答案：${String.fromCharCode(65+ansIdx)}</b>`
+      : `正确 / 错误　<b>答案：${ansIdx?'正确':'错误'}</b>`;
+    html+=`<tr><td>${idx+1}</td><td>${topic}</td><td>${typeTxt}</td><td>${q}</td><td>${optHtml}</td><td>${analysis||'—'}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  // 优先尝试生成 .docx（若 htmlDocx 可用），若失败回退为 .doc（HTML）以兼容更多环境
+  try {
+    if (typeof htmlDocx !== 'undefined' && htmlDocx && htmlDocx.asBlob) {
+      const blob = htmlDocx.asBlob(html);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '计算机组成原理错题.docx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      return;
+    }
+  } catch (e) {
+    console.warn('htmlDocx failed, fallback to .doc', e);
+  }
+
+  // fallback: as simple HTML in .doc
+  const blob2 = new Blob([html], { type: 'application/msword;charset=utf-8' });
+  const a2 = document.createElement('a');
+  a2.href = URL.createObjectURL(blob2);
+  a2.download = '计算机组成原理错题.doc';
+  document.body.appendChild(a2);
+  a2.click();
+  document.body.removeChild(a2);
+  URL.revokeObjectURL(a2.href);
+}
+
+/* ======================= 添加导出错题按钮 ======================= */
+const navbar=document.querySelector('.navbar');
+const exportTxtBtn=document.createElement('button');
+exportTxtBtn.className='btn'; exportTxtBtn.style.marginLeft='10px'; exportTxtBtn.textContent='导出错题 TXT'; exportTxtBtn.onclick = exportWrongTxt; navbar.appendChild(exportTxtBtn);
+const exportWordBtn=document.createElement('button'); exportWordBtn.className='btn';exportWordBtn.style.marginLeft='8px'; exportWordBtn.textContent='导出错题 Word'; exportWordBtn.onclick=exportWrongWord; navbar.appendChild(exportWordBtn);
+
+/* ======================= 首次渲染 ======================= */
+render();
+if(document.getElementById('topic-stats') && typeof updateTopicStatsPanel === 'function') updateTopicStatsPanel();
 </script>
 </body>
 </html>
